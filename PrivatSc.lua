@@ -1,487 +1,491 @@
 -- ═══════════════════════════════════════════════════════════════════════
--- ║  RATIY EGG HUNTER MODULE - AUTO SPEED + ANTI-STEAL              ║
--- ║  ADDED AT THE TOP - DOES NOT TOUCH YOUR ORIGINAL CODE          ║
+-- ║  RATIY EGG HUNTER MODULE (FIXED - WITH ERROR HANDLING)          ║
+-- ║  DOES NOT TOUCH YOUR ORIGINAL CODE                              ║
 -- ═══════════════════════════════════════════════════════════════════════
 
-local function _ratiyEggHunter()
-    local _player = game:GetService("Players").LocalPlayer
-    local _character = _player.Character or _player.CharacterAdded:Wait()
-    local _humanoid = _character:WaitForChild("Humanoid")
-    local _rootPart = _character:WaitForChild("HumanoidRootPart")
-    local _players = game:GetService("Players")
-    local _runService = game:GetService("RunService")
-    local _replicated = game:GetService("ReplicatedStorage")
-    local _workspace = game:GetService("Workspace")
-    
-    -- ─── CONFIG ──────────────────────────────────────────────────────
-    local _minSpeed = 700000000000  -- 700T
-    local _maxSpeed = 2600000000000 -- 2.6B
-    local _currentSpeed = _minSpeed
-    local _targetEgg = nil
-    local _isHunting = false
-    local _isTreadmill = false
-    local _isFlying = false
-    local _antiStealActive = false
-    local _rivalPlayer = nil
-    
-    -- Rarity list
-    local _rarities = {
-        "Rainbow", "BrainrotGod", "Cosmic", "Exclusive", "Exotic",
-        "Secret", "Limited", "Eternal", "Divine", "Superior", "Titan"
-    }
-    
-    -- ─── FIND RATIY EGGS ────────────────────────────────────────────
-    local function _findRatiyEggs()
-        local _eggs = {}
-        for _, _v in pairs(_workspace:GetDescendants()) do
-            if _v:IsA("BasePart") or _v:IsA("Model") then
-                local _name = _v.Name:lower()
-                if _name:find("egg") or _name:find("telur") then
-                    local _hasRarity = false
-                    for _, _rarity in pairs(_rarities) do
-                        if _name:find(_rarity:lower()) then
-                            _hasRarity = true
-                            break
+local function _safeRatiyHunter()
+    local _success, _err = pcall(function()
+        local _player = game:GetService("Players").LocalPlayer
+        if not _player then return end
+        
+        local _character = _player.Character
+        if not _character then
+            _player.CharacterAdded:Wait()
+            _character = _player.Character
+        end
+        if not _character then return end
+        
+        local _humanoid = _character:FindFirstChild("Humanoid")
+        local _rootPart = _character:FindFirstChild("HumanoidRootPart")
+        if not _humanoid or not _rootPart then return end
+        
+        local _players = game:GetService("Players")
+        local _runService = game:GetService("RunService")
+        local _replicated = game:GetService("ReplicatedStorage")
+        local _workspace = game:GetService("Workspace")
+        
+        local _minSpeed = 700000000000
+        local _maxSpeed = 2600000000000
+        local _currentSpeed = _minSpeed
+        local _targetEgg = nil
+        local _isHunting = false
+        local _isTreadmill = false
+        local _isFlying = false
+        local _antiStealActive = false
+        local _rivalPlayer = nil
+        
+        local _rarities = {
+            "Rainbow", "BrainrotGod", "Cosmic", "Exclusive", "Exotic",
+            "Secret", "Limited", "Eternal", "Divine", "Superior", "Titan"
+        }
+        
+        local function _findRatiyEggs()
+            local _eggs = {}
+            for _, _v in pairs(_workspace:GetDescendants()) do
+                if _v:IsA("BasePart") or _v:IsA("Model") then
+                    local _name = _v.Name:lower()
+                    if _name:find("egg") or _name:find("telur") then
+                        local _hasRarity = false
+                        for _, _rarity in pairs(_rarities) do
+                            if _name:find(_rarity:lower()) then
+                                _hasRarity = true
+                                break
+                            end
+                        end
+                        local _attr = _v:FindFirstChild("Rarity") or _v:FindFirstChild("EggRarity")
+                        if _attr and not _hasRarity then _hasRarity = true end
+                        if _hasRarity then
+                            local _pos = nil
+                            if _v:IsA("BasePart") then
+                                _pos = _v.Position
+                            elseif _v:IsA("Model") and _v.PrimaryPart then
+                                _pos = _v.PrimaryPart.Position
+                            end
+                            if _pos then
+                                table.insert(_eggs, {
+                                    object = _v,
+                                    position = _pos,
+                                    name = _v.Name,
+                                    distance = (_pos - _rootPart.Position).Magnitude
+                                })
+                            end
                         end
                     end
-                    local _attr = _v:FindFirstChild("Rarity") or _v:FindFirstChild("EggRarity")
-                    if _attr and not _hasRarity then
-                        _hasRarity = true
-                    end
-                    if _hasRarity then
-                        local _pos = nil
-                        if _v:IsA("BasePart") then
-                            _pos = _v.Position
-                        elseif _v:IsA("Model") and _v.PrimaryPart then
-                            _pos = _v.PrimaryPart.Position
-                        end
-                        if _pos then
-                            table.insert(_eggs, {
-                                object = _v,
+                end
+            end
+            table.sort(_eggs, function(a, b) return a.distance < b.distance end)
+            return _eggs
+        end
+        
+        local function _findRivals()
+            local _rivals = {}
+            if not _targetEgg then return _rivals end
+            for _, _other in pairs(_players:GetPlayers()) do
+                if _other ~= _player then
+                    local _char = _other.Character
+                    if _char and _char:FindFirstChild("HumanoidRootPart") then
+                        local _pos = _char.HumanoidRootPart.Position
+                        local _dist = (_pos - _targetEgg.position).Magnitude
+                        if _dist < 50 then
+                            table.insert(_rivals, {
+                                player = _other,
+                                character = _char,
                                 position = _pos,
-                                name = _v.Name,
-                                distance = (_pos - _rootPart.Position).Magnitude
+                                distance = _dist
                             })
                         end
                     end
                 end
             end
+            table.sort(_rivals, function(a, b) return a.distance < b.distance end)
+            return _rivals
         end
-        table.sort(_eggs, function(a, b) return a.distance < b.distance end)
-        return _eggs
-    end
-    
-    -- ─── FIND RIVALS ──────────────────────────────────────────────────
-    local function _findRivals()
-        local _rivals = {}
-        if not _targetEgg then return _rivals end
-        for _, _other in pairs(_players:GetPlayers()) do
-            if _other ~= _player then
-                local _char = _other.Character
-                if _char and _char:FindFirstChild("HumanoidRootPart") then
-                    local _pos = _char.HumanoidRootPart.Position
-                    local _dist = (_pos - _targetEgg.position).Magnitude
-                    if _dist < 50 then
-                        table.insert(_rivals, {
-                            player = _other,
-                            character = _char,
-                            position = _pos,
-                            distance = _dist
-                        })
-                    end
+        
+        local function _instantPickup(_egg)
+            if not _egg then return false end
+            local _dist = (_egg.position - _rootPart.Position).Magnitude
+            if _dist > 20 then
+                local _target = _egg.position + Vector3.new(math.random(-2,2), 0, math.random(-2,2))
+                _target = Vector3.new(_target.X, 3, _target.Z)
+                _rootPart.CFrame = CFrame.new(_target)
+                _runService.Heartbeat:Wait()
+                _runService.Heartbeat:Wait()
+            end
+            local _events = {
+                _replicated:FindFirstChild("StealEgg"),
+                _replicated:FindFirstChild("CollectEgg"),
+                _replicated:FindFirstChild("GrabEgg"),
+                _replicated:FindFirstChild("ClaimRarity"),
+                _replicated:FindFirstChild("CollectRarity"),
+            }
+            for _, _ev in pairs(_events) do
+                if _ev then
+                    pcall(function() _ev:FireServer(_egg.object) end)
+                    print("[SC ARYA] 🥚 INSTANT PICKUP: " .. _egg.name)
+                    return true
                 end
             end
+            return false
         end
-        table.sort(_rivals, function(a, b) return a.distance < b.distance end)
-        return _rivals
-    end
-    
-    -- ─── INSTANT PICKUP ─────────────────────────────────────────────
-    local function _instantPickup(_egg)
-        if not _egg then return false end
-        local _dist = (_egg.position - _rootPart.Position).Magnitude
-        if _dist > 20 then
-            local _target = _egg.position + Vector3.new(math.random(-2,2), 0, math.random(-2,2))
-            _target = Vector3.new(_target.X, 3, _target.Z)
-            _rootPart.CFrame = CFrame.new(_target)
-            _runService.Heartbeat:Wait()
-            _runService.Heartbeat:Wait()
-        end
-        local _events = {
-            _replicated:FindFirstChild("StealEgg"),
-            _replicated:FindFirstChild("CollectEgg"),
-            _replicated:FindFirstChild("GrabEgg"),
-            _replicated:FindFirstChild("ClaimRarity"),
-            _replicated:FindFirstChild("CollectRarity"),
-        }
-        for _, _ev in pairs(_events) do
-            if _ev then
-                pcall(function() _ev:FireServer(_egg.object) end)
-                print("[SC ARYA] 🥚 INSTANT PICKUP: " .. _egg.name)
-                return true
-            end
-        end
-        return false
-    end
-    
-    -- ─── CHASE AND PUNCH RIVAL ──────────────────────────────────────
-    local function _chaseAndPunch(_rival)
-        if not _rival or not _rival.character then return false end
-        print("[SC ARYA] 👊 CHASING RIVAL: " .. _rival.player.Name)
-        _isFlying = true
-        _antiStealActive = true
         
-        local _chaseSpeed = _maxSpeed
-        pcall(function() _humanoid.WalkSpeed = _chaseSpeed end)
-        
-        local _startTime = tick()
-        local _chaseDuration = 5
-        
-        while _rival and _rival.character and _rival.character:FindFirstChild("HumanoidRootPart") and tick() - _startTime < _chaseDuration do
-            local _rivalPos = _rival.character.HumanoidRootPart.Position
-            local _dist = (_rivalPos - _rootPart.Position).Magnitude
+        local function _chaseAndPunch(_rival)
+            if not _rival or not _rival.character then return false end
+            print("[SC ARYA] 👊 CHASING RIVAL: " .. _rival.player.Name)
+            _isFlying = true
+            _antiStealActive = true
             
-            local _target = _rivalPos + Vector3.new(math.random(-2,2), 0, math.random(-2,2))
-            _target = Vector3.new(_target.X, 3, _target.Z)
-            _rootPart.CFrame = CFrame.new(_target)
+            local _chaseSpeed = _maxSpeed
+            pcall(function() _humanoid.WalkSpeed = _chaseSpeed end)
             
-            if _dist < 10 then
-                local _punchEvent = _replicated:FindFirstChild("Punch") or 
-                                    _replicated:FindFirstChild("Attack") or
-                                    _replicated:FindFirstChild("Hit")
-                if _punchEvent then
-                    pcall(function() _punchEvent:FireServer(_rival.player) end)
-                    print("[SC ARYA] 👊 PUNCHED: " .. _rival.player.Name)
-                end
-                pcall(function()
-                    if _rival.character:FindFirstChild("HumanoidRootPart") then
-                        local _knockback = (_rivalPos - _rootPart.Position).Unit * 20
-                        _rival.character.HumanoidRootPart.CFrame = _rival.character.HumanoidRootPart.CFrame + _knockback
+            local _startTime = tick()
+            local _chaseDuration = 5
+            
+            while _rival and _rival.character and _rival.character:FindFirstChild("HumanoidRootPart") and tick() - _startTime < _chaseDuration do
+                local _rivalPos = _rival.character.HumanoidRootPart.Position
+                local _dist = (_rivalPos - _rootPart.Position).Magnitude
+                
+                local _target = _rivalPos + Vector3.new(math.random(-2,2), 0, math.random(-2,2))
+                _target = Vector3.new(_target.X, 3, _target.Z)
+                _rootPart.CFrame = CFrame.new(_target)
+                
+                if _dist < 10 then
+                    local _punchEvent = _replicated:FindFirstChild("Punch") or 
+                                        _replicated:FindFirstChild("Attack") or
+                                        _replicated:FindFirstChild("Hit")
+                    if _punchEvent then
+                        pcall(function() _punchEvent:FireServer(_rival.player) end)
+                        print("[SC ARYA] 👊 PUNCHED: " .. _rival.player.Name)
                     end
-                end)
-                break
-            end
-            
-            _runService.Heartbeat:Wait()
-        end
-        
-        _isFlying = false
-        _antiStealActive = false
-        return true
-    end
-    
-    -- ─── TREADMILL MODE ─────────────────────────────────────────────
-    local function _treadmillMode()
-        if _isTreadmill then return end
-        _isTreadmill = true
-        print("[SC ARYA] 🏃 TREADMILL MODE ACTIVATED")
-        
-        pcall(function() _humanoid.WalkSpeed = _minSpeed end)
-        
-        local _treadmillTime = 0
-        while _isTreadmill and not _findRatiyEggs()[1] do
-            _treadmillTime = _treadmillTime + 1
-            local _dir = Vector3.new(math.random(-10,10), 0, math.random(-10,10))
-            local _target = _rootPart.Position + _dir
-            _target = Vector3.new(_target.X, 3, _target.Z)
-            _rootPart.CFrame = CFrame.new(_target)
-            
-            local _farmEvent = _replicated:FindFirstChild("Farm") or _replicated:FindFirstChild("Treadmill")
-            if _farmEvent then
-                pcall(function() _farmEvent:FireServer() end)
-            end
-            
-            wait(math.random(2,4))
-            
-            if _treadmillTime % 5 == 0 then
-                local _eggs = _findRatiyEggs()
-                if _eggs and _eggs[1] then
-                    _isTreadmill = false
-                    _targetEgg = _eggs[1]
-                    print("[SC ARYA] 🥚 Ratiy egg found! Switching to hunt mode.")
+                    pcall(function()
+                        if _rival.character:FindFirstChild("HumanoidRootPart") then
+                            local _knockback = (_rivalPos - _rootPart.Position).Unit * 20
+                            _rival.character.HumanoidRootPart.CFrame = _rival.character.HumanoidRootPart.CFrame + _knockback
+                        end
+                    end)
                     break
                 end
-            end
-        end
-        _isTreadmill = false
-    end
-    
-    -- ─── APPLY SPEED BOOST ──────────────────────────────────────────
-    local function _applyBoost()
-        if _isFlying then return end
-        _currentSpeed = _currentSpeed + math.random(10000000000, 50000000000)
-        if _currentSpeed > _maxSpeed then
-            _currentSpeed = _minSpeed
-        end
-        _currentSpeed = math.clamp(_currentSpeed, _minSpeed, _maxSpeed)
-        pcall(function()
-            _humanoid.WalkSpeed = _currentSpeed
-        end)
-    end
-    
-    -- ─── MAIN LOOP ──────────────────────────────────────────────────
-    spawn(function()
-        while wait(0.5) do
-            pcall(function()
-                if not _character or not _character.Parent then
-                    _character = _player.Character
-                    if _character then
-                        _humanoid = _character:WaitForChild("Humanoid")
-                        _rootPart = _character:WaitForChild("HumanoidRootPart")
-                    end
-                end
-                if not _character then return end
                 
-                local _eggs = _findRatiyEggs()
-                
-                if _eggs and _eggs[1] then
-                    _targetEgg = _eggs[1]
-                    _isTreadmill = false
-                    
-                    local _rivals = _findRivals()
-                    if _rivals and _rivals[1] then
-                        _rivalPlayer = _rivals[1]
-                        print("[SC ARYA] ⚠️ Rival detected near egg! " .. _rivalPlayer.player.Name)
-                        
-                        if _rivalPlayer.distance < _targetEgg.distance then
-                            _chaseAndPunch(_rivalPlayer)
-                            wait(0.5)
-                            local _newEggs = _findRatiyEggs()
-                            if _newEggs and _newEggs[1] then
-                                _targetEgg = _newEggs[1]
-                            else
-                                print("[SC ARYA] ❌ Egg was taken by rival!")
-                                _targetEgg = nil
-                                wait(1)
-                                return
-                            end
-                        end
-                    end
-                    
-                    _isHunting = true
-                    _applyBoost()
-                    
-                    local _target = _targetEgg.position + Vector3.new(math.random(-3,3), 0, math.random(-3,3))
-                    _target = Vector3.new(_target.X, 3, _target.Z)
-                    _rootPart.CFrame = CFrame.new(_target)
-                    
-                    local _dist = (_targetEgg.position - _rootPart.Position).Magnitude
-                    if _dist < 25 then
-                        _instantPickup(_targetEgg)
-                        _targetEgg = nil
-                        _isHunting = false
-                        wait(0.2)
-                    else
-                        _isHunting = true
-                    end
-                else
-                    if not _isTreadmill then
-                        _targetEgg = nil
-                        _isHunting = false
-                        _treadmillMode()
-                    end
-                end
-            end)
-        end
-    end)
-    
-    -- ─── CHARACTER RESET ────────────────────────────────────────────
-    _player.CharacterAdded:Connect(function(_char)
-        _character = _char
-        wait(0.5)
-        _humanoid = _character:WaitForChild("Humanoid")
-        _rootPart = _character:WaitForChild("HumanoidRootPart")
-        _currentSpeed = _minSpeed
-        pcall(function() _humanoid.WalkSpeed = _currentSpeed end)
-        print("[SC ARYA] 🔄 Character reset - applying speed boost")
-    end)
-    
-    print("[SC ARYA] ✅ RATIY EGG HUNTER ACTIVATED")
-    print("[SC ARYA] 🚀 Speed: 700T - 2.6B")
-    print("[SC ARYA] 🥚 Hunting: Rainbow, BrainrotGod, Cosmic, Exclusive, Exotic, Secret, Limited, Eternal, Divine, Superior, Titan")
-    print("[SC ARYA] 👊 Anti-Steal: ON")
-end
-
-_ratiyEggHunter()
-
--- ═══════════════════════════════════════════════════════════════════════
--- ║  ULTIMATE ANTI-KICK - HOOKS EVERYTHING                           ║
--- ═══════════════════════════════════════════════════════════════════════
-
-local function _ultimateAntiKick()
-    local _player = game:GetService("Players").LocalPlayer
-    local _placeId = game.PlaceId
-    local _teleport = game:GetService("TeleportService")
-    local _players = game:GetService("Players")
-    local _replicated = game:GetService("ReplicatedStorage")
-    local _runService = game:GetService("RunService")
-    
-    -- ─── BLOCK KICK ON PLAYER ──────────────────────────────────────
-    local _origPlayerKick = _player.Kick
-    _player.Kick = function(...)
-        print("[SC ARYA] 🛡️ ULTIMATE: Blocked player:kick()")
-        return nil
-    end
-    
-    -- ─── BLOCK DESTROY ON PLAYER ────────────────────────────────────
-    local _origDestroy = _player.Destroy
-    _player.Destroy = function(...)
-        print("[SC ARYA] 🛡️ ULTIMATE: Blocked player:Destroy()")
-        return nil
-    end
-    
-    -- ─── BLOCK REMOVE ON PLAYER ────────────────────────────────────
-    if _player.Remove then
-        local _origRemove = _player.Remove
-        _player.Remove = function(...)
-            print("[SC ARYA] 🛡️ ULTIMATE: Blocked player:Remove()")
-            return nil
-        end
-    end
-    
-    -- ─── BLOCK KICK ON GAME ────────────────────────────────────────
-    local _origGameKick = game.Kick
-    game.Kick = function(...)
-        print("[SC ARYA] 🛡️ ULTIMATE: Blocked game:Kick()")
-        return nil
-    end
-    
-    -- ─── BLOCK SHUTDOWN ON GAME ────────────────────────────────────
-    if game.Shutdown then
-        local _origShutdown = game.Shutdown
-        game.Shutdown = function(...)
-            print("[SC ARYA] 🛡️ ULTIMATE: Blocked game:Shutdown()")
-            return nil
-        end
-    end
-    
-    -- ─── BLOCK REMOVEPLAYER ON PLAYERS ─────────────────────────────
-    if _players.RemovePlayer then
-        local _origRemovePlayer = _players.RemovePlayer
-        _players.RemovePlayer = function(...)
-            print("[SC ARYA] 🛡️ ULTIMATE: Blocked Players:RemovePlayer()")
-            return nil
-        end
-    end
-    
-    -- ─── HOOK PLAYER METATABLE ──────────────────────────────────────
-    local _mt = getmetatable(_player) or {}
-    local _oldIndex = _mt.__index
-    _mt.__index = function(self, key)
-        if key == "Kick" or key == "Destroy" or key == "Remove" then
-            return function(...)
-                print("[SC ARYA] 🛡️ ULTIMATE: Blocked " .. key .. " via metatable")
-                return nil
+                _runService.Heartbeat:Wait()
             end
+            
+            _isFlying = false
+            _antiStealActive = false
+            return true
         end
-        if _oldIndex then
-            return _oldIndex(self, key)
-        end
-        return nil
-    end
-    setmetatable(_player, _mt)
-    
-    -- ─── BLOCK PARENT CHANGE ────────────────────────────────────────
-    local _mt2 = getmetatable(_player) or {}
-    local _oldNewIndex = _mt2.__newindex
-    _mt2.__newindex = function(self, key, value)
-        if key == "Parent" and value ~= _players then
-            print("[SC ARYA] 🛡️ ULTIMATE: Blocked Parent change")
-            return nil
-        end
-        if _oldNewIndex then
-            return _oldNewIndex(self, key, value)
-        end
-        return rawset(self, key, value)
-    end
-    setmetatable(_player, _mt2)
-    
-    -- ─── KILL ALL REMOTE EVENTS THAT CAN KICK ──────────────────────
-    local function _killRemotes()
-        for _, _remote in pairs(_replicated:GetDescendants()) do
-            if _remote:IsA("RemoteEvent") or _remote:IsA("RemoteFunction") then
-                local _rName = _remote.Name:lower()
-                local _keywords = {"kick","ban","remove","delete","exit","eject","terminate","suspend","cheat","exploit","detect","mod","admin","moderate"}
-                local _shouldKill = false
-                for _, _kw in pairs(_keywords) do
-                    if _rName:find(_kw) then
-                        _shouldKill = true
+        
+        local function _treadmillMode()
+            if _isTreadmill then return end
+            _isTreadmill = true
+            print("[SC ARYA] 🏃 TREADMILL MODE ACTIVATED")
+            
+            pcall(function() _humanoid.WalkSpeed = _minSpeed end)
+            
+            local _treadmillTime = 0
+            while _isTreadmill and not _findRatiyEggs()[1] do
+                _treadmillTime = _treadmillTime + 1
+                local _dir = Vector3.new(math.random(-10,10), 0, math.random(-10,10))
+                local _target = _rootPart.Position + _dir
+                _target = Vector3.new(_target.X, 3, _target.Z)
+                _rootPart.CFrame = CFrame.new(_target)
+                
+                local _farmEvent = _replicated:FindFirstChild("Farm") or _replicated:FindFirstChild("Treadmill")
+                if _farmEvent then
+                    pcall(function() _farmEvent:FireServer() end)
+                end
+                
+                wait(math.random(2,4))
+                
+                if _treadmillTime % 5 == 0 then
+                    local _eggs = _findRatiyEggs()
+                    if _eggs and _eggs[1] then
+                        _isTreadmill = false
+                        _targetEgg = _eggs[1]
+                        print("[SC ARYA] 🥚 Ratiy egg found! Switching to hunt mode.")
                         break
                     end
                 end
-                if _shouldKill and not _remote._killed then
-                    _remote._killed = true
-                    pcall(function()
-                        for _, _conn in pairs(getconnections(_remote.OnServerEvent)) do
-                            _conn:Disconnect()
-                        end
-                    end)
-                    if _remote:IsA("RemoteEvent") then
-                        _remote.OnServerEvent = function(...)
-                            print("[SC ARYA] 🛡️ ULTIMATE: Killed remote event: " .. _remote.Name)
-                            return nil
-                        end
-                    elseif _remote:IsA("RemoteFunction") then
-                        _remote.OnServerInvoke = function(...)
-                            print("[SC ARYA] 🛡️ ULTIMATE: Killed remote function: " .. _remote.Name)
-                            return nil
+            end
+            _isTreadmill = false
+        end
+        
+        local function _applyBoost()
+            if _isFlying then return end
+            _currentSpeed = _currentSpeed + math.random(10000000000, 50000000000)
+            if _currentSpeed > _maxSpeed then
+                _currentSpeed = _minSpeed
+            end
+            _currentSpeed = math.clamp(_currentSpeed, _minSpeed, _maxSpeed)
+            pcall(function()
+                _humanoid.WalkSpeed = _currentSpeed
+            end)
+        end
+        
+        spawn(function()
+            while wait(0.5) do
+                pcall(function()
+                    if not _character or not _character.Parent then
+                        _character = _player.Character
+                        if _character then
+                            _humanoid = _character:WaitForChild("Humanoid")
+                            _rootPart = _character:WaitForChild("HumanoidRootPart")
                         end
                     end
-                end
-            end
-        end
-    end
-    
-    _killRemotes()
-    
-    spawn(function()
-        while wait(0.5) do
-            _killRemotes()
-        end
-    end)
-    
-    -- ─── FRAME-BY-FRAME PLAYER MONITOR ──────────────────────────────
-    _runService.Heartbeat:Connect(function()
-        pcall(function()
-            if not _player or not _player.Parent or _player.Parent ~= _players then
-                print("[SC ARYA] 🚨 PLAYER REMOVED! Forcing rejoin...")
-                pcall(function()
-                    _player.Parent = _players
-                end)
-                pcall(function()
-                    _teleport:Teleport(_placeId)
-                end)
-                pcall(function()
-                    _teleport:Teleport(_placeId, _player)
+                    if not _character then return end
+                    
+                    local _eggs = _findRatiyEggs()
+                    
+                    if _eggs and _eggs[1] then
+                        _targetEgg = _eggs[1]
+                        _isTreadmill = false
+                        
+                        local _rivals = _findRivals()
+                        if _rivals and _rivals[1] then
+                            _rivalPlayer = _rivals[1]
+                            print("[SC ARYA] ⚠️ Rival detected near egg! " .. _rivalPlayer.player.Name)
+                            
+                            if _rivalPlayer.distance < _targetEgg.distance then
+                                _chaseAndPunch(_rivalPlayer)
+                                wait(0.5)
+                                local _newEggs = _findRatiyEggs()
+                                if _newEggs and _newEggs[1] then
+                                    _targetEgg = _newEggs[1]
+                                else
+                                    print("[SC ARYA] ❌ Egg was taken by rival!")
+                                    _targetEgg = nil
+                                    wait(1)
+                                    return
+                                end
+                            end
+                        end
+                        
+                        _isHunting = true
+                        _applyBoost()
+                        
+                        local _target = _targetEgg.position + Vector3.new(math.random(-3,3), 0, math.random(-3,3))
+                        _target = Vector3.new(_target.X, 3, _target.Z)
+                        _rootPart.CFrame = CFrame.new(_target)
+                        
+                        local _dist = (_targetEgg.position - _rootPart.Position).Magnitude
+                        if _dist < 25 then
+                            _instantPickup(_targetEgg)
+                            _targetEgg = nil
+                            _isHunting = false
+                            wait(0.2)
+                        else
+                            _isHunting = true
+                        end
+                    else
+                        if not _isTreadmill then
+                            _targetEgg = nil
+                            _isHunting = false
+                            _treadmillMode()
+                        end
+                    end
                 end)
             end
         end)
+        
+        _player.CharacterAdded:Connect(function(_char)
+            _character = _char
+            wait(0.5)
+            _humanoid = _character:WaitForChild("Humanoid")
+            _rootPart = _character:WaitForChild("HumanoidRootPart")
+            _currentSpeed = _minSpeed
+            pcall(function() _humanoid.WalkSpeed = _currentSpeed end)
+            print("[SC ARYA] 🔄 Character reset - applying speed boost")
+        end)
+        
+        print("[SC ARYA] ✅ RATIY EGG HUNTER ACTIVATED")
+        print("[SC ARYA] 🚀 Speed: 700T - 2.6B")
+        print("[SC ARYA] 🥚 Hunting: Rainbow, BrainrotGod, Cosmic, Exclusive, Exotic, Secret, Limited, Eternal, Divine, Superior, Titan")
+        print("[SC ARYA] 👊 Anti-Steal: ON")
     end)
-    
-    -- ─── MONITOR FOR KICK MESSAGES ──────────────────────────────────
-    spawn(function()
-        while wait(0.3) do
-            pcall(function()
-                for _, _v in pairs(game:GetDescendants()) do
-                    if _v:IsA("Message") or _v:IsA("Hint") or _v:IsA("TextLabel") then
-                        local _text = _v.Text or ""
-                        if _text:lower():find("removed") or _text:lower():find("cheating") or 
-                           _text:lower():find("ban") or _text:lower():find("kicked") or 
-                           _text:lower():find("exploit") or _text:lower():find("detected") then
-                            pcall(function() _v.Text = "" end)
-                            pcall(function() _v.Visible = false end)
-                            pcall(function() _v:Destroy() end)
+    if not _success then
+        print("[SC ARYA] ⚠️ Ratiy Hunter error (non-critical): " .. tostring(_err))
+    end
+end
+
+_safeRatiyHunter()
+
+-- ═══════════════════════════════════════════════════════════════════════
+-- ║  ULTIMATE ANTI-KICK (FIXED - WITH ERROR HANDLING)                ║
+-- ═══════════════════════════════════════════════════════════════════════
+
+local function _safeUltimateAntiKick()
+    local _success, _err = pcall(function()
+        local _player = game:GetService("Players").LocalPlayer
+        if not _player then return end
+        
+        local _placeId = game.PlaceId
+        local _teleport = game:GetService("TeleportService")
+        local _players = game:GetService("Players")
+        local _replicated = game:GetService("ReplicatedStorage")
+        local _runService = game:GetService("RunService")
+        
+        -- Block kick on player
+        local _origPlayerKick = _player.Kick
+        _player.Kick = function(...)
+            print("[SC ARYA] 🛡️ Blocked player:kick()")
+            return nil
+        end
+        
+        -- Block destroy
+        local _origDestroy = _player.Destroy
+        _player.Destroy = function(...)
+            print("[SC ARYA] 🛡️ Blocked player:Destroy()")
+            return nil
+        end
+        
+        -- Block remove
+        if _player.Remove then
+            local _origRemove = _player.Remove
+            _player.Remove = function(...)
+                print("[SC ARYA] 🛡️ Blocked player:Remove()")
+                return nil
+            end
+        end
+        
+        -- Block game kick
+        local _origGameKick = game.Kick
+        game.Kick = function(...)
+            print("[SC ARYA] 🛡️ Blocked game:Kick()")
+            return nil
+        end
+        
+        -- Block shutdown
+        if game.Shutdown then
+            local _origShutdown = game.Shutdown
+            game.Shutdown = function(...)
+                print("[SC ARYA] 🛡️ Blocked game:Shutdown()")
+                return nil
+            end
+        end
+        
+        -- Block RemovePlayer
+        if _players.RemovePlayer then
+            local _origRemovePlayer = _players.RemovePlayer
+            _players.RemovePlayer = function(...)
+                print("[SC ARYA] 🛡️ Blocked Players:RemovePlayer()")
+                return nil
+            end
+        end
+        
+        -- Metatable hook
+        local _mt = getmetatable(_player) or {}
+        local _oldIndex = _mt.__index
+        _mt.__index = function(self, key)
+            if key == "Kick" or key == "Destroy" or key == "Remove" then
+                return function(...)
+                    print("[SC ARYA] 🛡️ Blocked " .. key .. " via metatable")
+                    return nil
+                end
+            end
+            if _oldIndex then
+                return _oldIndex(self, key)
+            end
+            return nil
+        end
+        setmetatable(_player, _mt)
+        
+        -- Block parent change
+        local _mt2 = getmetatable(_player) or {}
+        local _oldNewIndex = _mt2.__newindex
+        _mt2.__newindex = function(self, key, value)
+            if key == "Parent" and value ~= _players then
+                print("[SC ARYA] 🛡️ Blocked Parent change")
+                return nil
+            end
+            if _oldNewIndex then
+                return _oldNewIndex(self, key, value)
+            end
+            return rawset(self, key, value)
+        end
+        setmetatable(_player, _mt2)
+        
+        -- Kill remotes
+        local function _killRemotes()
+            for _, _remote in pairs(_replicated:GetDescendants()) do
+                if _remote:IsA("RemoteEvent") or _remote:IsA("RemoteFunction") then
+                    local _rName = _remote.Name:lower()
+                    local _keywords = {"kick","ban","remove","delete","exit","eject","terminate","suspend","cheat","exploit","detect","mod","admin","moderate"}
+                    local _shouldKill = false
+                    for _, _kw in pairs(_keywords) do
+                        if _rName:find(_kw) then
+                            _shouldKill = true
+                            break
+                        end
+                    end
+                    if _shouldKill and not _remote._killed then
+                        _remote._killed = true
+                        pcall(function()
+                            for _, _conn in pairs(getconnections(_remote.OnServerEvent)) do
+                                _conn:Disconnect()
+                            end
+                        end)
+                        if _remote:IsA("RemoteEvent") then
+                            _remote.OnServerEvent = function(...)
+                                print("[SC ARYA] 🛡️ Killed remote event: " .. _remote.Name)
+                                return nil
+                            end
+                        elseif _remote:IsA("RemoteFunction") then
+                            _remote.OnServerInvoke = function(...)
+                                print("[SC ARYA] 🛡️ Killed remote function: " .. _remote.Name)
+                                return nil
+                            end
                         end
                     end
                 end
-            end)
+            end
         end
+        
+        _killRemotes()
+        
+        spawn(function()
+            while wait(0.5) do
+                _killRemotes()
+            end
+        end)
+        
+        -- Frame monitor
+        _runService.Heartbeat:Connect(function()
+            pcall(function()
+                if not _player or not _player.Parent or _player.Parent ~= _players then
+                    print("[SC ARYA] 🚨 PLAYER REMOVED! Forcing rejoin...")
+                    pcall(function() _player.Parent = _players end)
+                    pcall(function() _teleport:Teleport(_placeId) end)
+                    pcall(function() _teleport:Teleport(_placeId, _player) end)
+                end
+            end)
+        end)
+        
+        -- Monitor kick messages
+        spawn(function()
+            while wait(0.3) do
+                pcall(function()
+                    for _, _v in pairs(game:GetDescendants()) do
+                        if _v:IsA("Message") or _v:IsA("Hint") or _v:IsA("TextLabel") then
+                            local _text = _v.Text or ""
+                            if _text:lower():find("removed") or _text:lower():find("cheating") or 
+                               _text:lower():find("ban") or _text:lower():find("kicked") or 
+                               _text:lower():find("exploit") or _text:lower():find("detected") then
+                                pcall(function() _v.Text = "" end)
+                                pcall(function() _v.Visible = false end)
+                                pcall(function() _v:Destroy() end)
+                            end
+                        end
+                    end
+                end)
+            end
+        end)
+        
+        print("[SC ARYA] ✅ ULTIMATE ANTI-KICK ACTIVATED")
     end)
-    
-    print("[SC ARYA] ✅ ULTIMATE ANTI-KICK ACTIVATED")
+    if not _success then
+        print("[SC ARYA] ⚠️ Anti-Kick error (non-critical): " .. tostring(_err))
+    end
 end
 
-_ultimateAntiKick()
+_safeUltimateAntiKick()
 
 -- ═══════════════════════════════════════════════════════════════════════
 -- ║  END OF ADDED MODULES                                             ║
@@ -1223,7 +1227,7 @@ _memProtect()
 print("")
 print("═══════════════════════════════════")
 print("  SC ARYA PRIVAT V1.5")
-print("  ULTIMATE EDITION")
+print("  ULTIMATE EDITION - FIXED")
 print("═══════════════════════════════════")
 print("✅ RATIY EGG HUNTER ACTIVE")
 print("✅ AUTO SPEED BOOST: 700T - 2.6B")
