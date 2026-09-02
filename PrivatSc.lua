@@ -8,6 +8,7 @@ local _randomSeed = tick() * math.random(1000, 9999)
 math.randomseed(_randomSeed)
 
 -- ─── LAYER 2: CUSTOM SANDBOX FOR ANTI-KICK ───────────────────────────
+-- ═══ THIS ANTI-KICK IS UNCHANGED - DO NOT MODIFY ═══
 local function _createSandbox()
     local _player = game:GetService("Players").LocalPlayer
     local _placeId = game.PlaceId
@@ -51,8 +52,9 @@ end
 
 _createSandbox()
 
--- ─── LAYER 3: RATIY HUNTER WITH DYNAMIC BEHAVIOR ─────────────────────
-local function _hunter()
+-- ─── LAYER 3: ENHANCED RATIY HUNTER (FULL FEATURES) ───────────────────
+-- ═══ THIS ADDS BACK SPEED BOOST, TREADMILL, ANTI-STEAL, CHASE, PUNCH ═══
+local function _enhancedHunter()
     local _player = game:GetService("Players").LocalPlayer
     if not _player then return end
     
@@ -72,54 +74,94 @@ local function _hunter()
     local _players = game:GetService("Players")
     local _run = game:GetService("RunService")
     
-    local _minSpeed = 700000000000
-    local _maxSpeed = 2600000000000
+    -- ─── CONFIG ──────────────────────────────────────────────────────
+    local _minSpeed = 700000000000  -- 700T
+    local _maxSpeed = 2600000000000 -- 2.6B
     local _speed = _minSpeed
-    local _target = nil
-    local _hunting = false
-    local _treadmill = false
+    local _targetEgg = nil
+    local _isHunting = false
+    local _isTreadmill = false
+    local _isFlying = false
+    local _antiStealActive = false
+    local _rivalPlayer = nil
     
-    local _rarities = {"Rainbow","BrainrotGod","Cosmic","Exclusive","Exotic","Secret","Limited","Eternal","Divine","Superior","Titan"}
+    local _rarities = {
+        "Rainbow", "BrainrotGod", "Cosmic", "Exclusive", "Exotic",
+        "Secret", "Limited", "Eternal", "Divine", "Superior", "Titan"
+    }
     
-    local function _findEggs()
+    -- ─── FIND RATIY EGGS ────────────────────────────────────────────
+    local function _findRatiyEggs()
         local _eggs = {}
         for _, _v in pairs(_ws:GetDescendants()) do
             if _v:IsA("BasePart") or _v:IsA("Model") then
-                local _n = _v.Name:lower()
-                if _n:find("egg") or _n:find("telur") then
-                    local _has = false
-                    for _, _r in pairs(_rarities) do
-                        if _n:find(_r:lower()) then _has = true; break end
+                local _name = _v.Name:lower()
+                if _name:find("egg") or _name:find("telur") then
+                    local _hasRarity = false
+                    for _, _rarity in pairs(_rarities) do
+                        if _name:find(_rarity:lower()) then
+                            _hasRarity = true
+                            break
+                        end
                     end
                     local _attr = _v:FindFirstChild("Rarity") or _v:FindFirstChild("EggRarity")
-                    if _attr and not _has then _has = true end
-                    if _has then
+                    if _attr and not _hasRarity then _hasRarity = true end
+                    if _hasRarity then
                         local _pos = nil
-                        if _v:IsA("BasePart") then _pos = _v.Position
-                        elseif _v:IsA("Model") and _v.PrimaryPart then _pos = _v.PrimaryPart.Position end
+                        if _v:IsA("BasePart") then
+                            _pos = _v.Position
+                        elseif _v:IsA("Model") and _v.PrimaryPart then
+                            _pos = _v.PrimaryPart.Position
+                        end
                         if _pos then
                             table.insert(_eggs, {
-                                obj = _v,
-                                pos = _pos,
+                                object = _v,
+                                position = _pos,
                                 name = _v.Name,
-                                dist = (_pos - _root.Position).Magnitude
+                                distance = (_pos - _root.Position).Magnitude
                             })
                         end
                     end
                 end
             end
         end
-        table.sort(_eggs, function(a,b) return a.dist < b.dist end)
+        table.sort(_eggs, function(a, b) return a.distance < b.distance end)
         return _eggs
     end
     
-    local function _pickup(_egg)
+    -- ─── FIND RIVALS ──────────────────────────────────────────────────
+    local function _findRivals()
+        local _rivals = {}
+        if not _targetEgg then return _rivals end
+        for _, _other in pairs(_players:GetPlayers()) do
+            if _other ~= _player then
+                local _char = _other.Character
+                if _char and _char:FindFirstChild("HumanoidRootPart") then
+                    local _pos = _char.HumanoidRootPart.Position
+                    local _dist = (_pos - _targetEgg.position).Magnitude
+                    if _dist < 50 then
+                        table.insert(_rivals, {
+                            player = _other,
+                            character = _char,
+                            position = _pos,
+                            distance = _dist
+                        })
+                    end
+                end
+            end
+        end
+        table.sort(_rivals, function(a, b) return a.distance < b.distance end)
+        return _rivals
+    end
+    
+    -- ─── INSTANT PICKUP ─────────────────────────────────────────────
+    local function _instantPickup(_egg)
         if not _egg then return false end
-        local _dist = (_egg.pos - _root.Position).Magnitude
+        local _dist = (_egg.position - _root.Position).Magnitude
         if _dist > 20 then
-            local _t = _egg.pos + Vector3.new(math.random(-2,2), 0, math.random(-2,2))
-            _t = Vector3.new(_t.X, 3, _t.Z)
-            _root.CFrame = CFrame.new(_t)
+            local _target = _egg.position + Vector3.new(math.random(-2,2), 0, math.random(-2,2))
+            _target = Vector3.new(_target.X, 3, _target.Z)
+            _root.CFrame = CFrame.new(_target)
             _run.Heartbeat:Wait()
             _run.Heartbeat:Wait()
         end
@@ -132,44 +174,108 @@ local function _hunter()
         }
         for _, _ev in pairs(_events) do
             if _ev then
-                pcall(function() _ev:FireServer(_egg.obj) end)
+                pcall(function() _ev:FireServer(_egg.object) end)
+                print("[SC ARYA] 🥚 INSTANT PICKUP: " .. _egg.name)
                 return true
             end
         end
         return false
     end
     
+    -- ─── CHASE AND PUNCH RIVAL ──────────────────────────────────────
+    local function _chaseAndPunch(_rival)
+        if not _rival or not _rival.character then return false end
+        print("[SC ARYA] 👊 CHASING RIVAL: " .. _rival.player.Name)
+        _isFlying = true
+        _antiStealActive = true
+        
+        local _chaseSpeed = _maxSpeed
+        pcall(function() _humanoid.WalkSpeed = _chaseSpeed end)
+        
+        local _startTime = tick()
+        local _chaseDuration = 5
+        
+        while _rival and _rival.character and _rival.character:FindFirstChild("HumanoidRootPart") and tick() - _startTime < _chaseDuration do
+            local _rivalPos = _rival.character.HumanoidRootPart.Position
+            local _dist = (_rivalPos - _root.Position).Magnitude
+            
+            local _target = _rivalPos + Vector3.new(math.random(-2,2), 0, math.random(-2,2))
+            _target = Vector3.new(_target.X, 3, _target.Z)
+            _root.CFrame = CFrame.new(_target)
+            
+            if _dist < 10 then
+                local _punchEvent = _rs:FindFirstChild("Punch") or 
+                                    _rs:FindFirstChild("Attack") or
+                                    _rs:FindFirstChild("Hit")
+                if _punchEvent then
+                    pcall(function() _punchEvent:FireServer(_rival.player) end)
+                    print("[SC ARYA] 👊 PUNCHED: " .. _rival.player.Name)
+                end
+                pcall(function()
+                    if _rival.character:FindFirstChild("HumanoidRootPart") then
+                        local _knockback = (_rivalPos - _root.Position).Unit * 20
+                        _rival.character.HumanoidRootPart.CFrame = _rival.character.HumanoidRootPart.CFrame + _knockback
+                    end
+                end)
+                break
+            end
+            
+            _run.Heartbeat:Wait()
+        end
+        
+        _isFlying = false
+        _antiStealActive = false
+        return true
+    end
+    
+    -- ─── TREADMILL MODE ─────────────────────────────────────────────
     local function _treadmillMode()
-        if _treadmill then return end
-        _treadmill = true
-        local _time = 0
-        while _treadmill and not _findEggs()[1] do
-            _time = _time + 1
+        if _isTreadmill then return end
+        _isTreadmill = true
+        print("[SC ARYA] 🏃 TREADMILL MODE ACTIVATED")
+        
+        pcall(function() _humanoid.WalkSpeed = _minSpeed end)
+        
+        local _treadmillTime = 0
+        while _isTreadmill and not _findRatiyEggs()[1] do
+            _treadmillTime = _treadmillTime + 1
             local _dir = Vector3.new(math.random(-10,10), 0, math.random(-10,10))
-            local _t = _root.Position + _dir
-            _t = Vector3.new(_t.X, 3, _t.Z)
-            _root.CFrame = CFrame.new(_t)
-            local _farm = _rs:FindFirstChild("Farm") or _rs:FindFirstChild("Treadmill")
-            if _farm then pcall(function() _farm:FireServer() end) end
+            local _target = _root.Position + _dir
+            _target = Vector3.new(_target.X, 3, _target.Z)
+            _root.CFrame = CFrame.new(_target)
+            
+            local _farmEvent = _rs:FindFirstChild("Farm") or _rs:FindFirstChild("Treadmill")
+            if _farmEvent then
+                pcall(function() _farmEvent:FireServer() end)
+            end
+            
             wait(math.random(2,4))
-            if _time % 5 == 0 then
-                if _findEggs()[1] then
-                    _treadmill = false
-                    return
+            
+            if _treadmillTime % 5 == 0 then
+                local _eggs = _findRatiyEggs()
+                if _eggs and _eggs[1] then
+                    _isTreadmill = false
+                    _targetEgg = _eggs[1]
+                    print("[SC ARYA] 🥚 Ratiy egg found! Switching to hunt mode.")
+                    break
                 end
             end
         end
-        _treadmill = false
+        _isTreadmill = false
     end
     
-    -- ─── RANDOMIZED SPEED APPLICATION ──────────────────────────────
+    -- ─── APPLY SPEED BOOST ──────────────────────────────────────────
     local function _applySpeed()
-        _speed = _speed + math.random(5000000000, 30000000000)
+        if _isFlying then return end
+        _speed = _speed + math.random(10000000000, 50000000000)
         if _speed > _maxSpeed then _speed = _minSpeed end
         _speed = math.clamp(_speed, _minSpeed, _maxSpeed)
-        pcall(function() _humanoid.WalkSpeed = _speed end)
+        pcall(function()
+            _humanoid.WalkSpeed = _speed
+        end)
     end
     
+    -- ─── MAIN LOOP ──────────────────────────────────────────────────
     spawn(function()
         while wait(0.5 + math.random() * 0.3) do
             pcall(function()
@@ -182,27 +288,55 @@ local function _hunter()
                 end
                 if not _char then return end
                 
-                local _eggs = _findEggs()
+                local _eggs = _findRatiyEggs()
+                
                 if _eggs and _eggs[1] then
-                    _target = _eggs[1]
-                    _treadmill = false
+                    _targetEgg = _eggs[1]
+                    _isTreadmill = false
                     
-                    -- Randomize movement slightly
-                    local _offset = Vector3.new(math.random(-4,4), 0, math.random(-4,4))
-                    local _targetPos = _target.pos + _offset
-                    _targetPos = Vector3.new(_targetPos.X, 3, _targetPos.Z)
-                    _root.CFrame = CFrame.new(_targetPos)
+                    -- Check for rivals
+                    local _rivals = _findRivals()
+                    if _rivals and _rivals[1] then
+                        _rivalPlayer = _rivals[1]
+                        print("[SC ARYA] ⚠️ Rival detected near egg! " .. _rivalPlayer.player.Name)
+                        
+                        if _rivalPlayer.distance < _targetEgg.distance then
+                            _chaseAndPunch(_rivalPlayer)
+                            wait(0.5)
+                            local _newEggs = _findRatiyEggs()
+                            if _newEggs and _newEggs[1] then
+                                _targetEgg = _newEggs[1]
+                            else
+                                print("[SC ARYA] ❌ Egg was taken by rival!")
+                                _targetEgg = nil
+                                wait(1)
+                                return
+                            end
+                        end
+                    end
+                    
+                    _isHunting = true
                     _applySpeed()
                     
-                    local _dist = (_target.pos - _root.Position).Magnitude
+                    -- Move toward egg
+                    local _offset = Vector3.new(math.random(-3,3), 0, math.random(-3,3))
+                    local _targetPos = _targetEgg.position + _offset
+                    _targetPos = Vector3.new(_targetPos.X, 3, _targetPos.Z)
+                    _root.CFrame = CFrame.new(_targetPos)
+                    
+                    local _dist = (_targetEgg.position - _root.Position).Magnitude
                     if _dist < 25 then
-                        _pickup(_target)
-                        _target = nil
+                        _instantPickup(_targetEgg)
+                        _targetEgg = nil
+                        _isHunting = false
                         wait(0.3 + math.random() * 0.3)
+                    else
+                        _isHunting = true
                     end
                 else
-                    if not _treadmill then
-                        _target = nil
+                    if not _isTreadmill then
+                        _targetEgg = nil
+                        _isHunting = false
                         _treadmillMode()
                     end
                 end
@@ -210,6 +344,7 @@ local function _hunter()
         end
     end)
     
+    -- ─── CHARACTER RESET ────────────────────────────────────────────
     _player.CharacterAdded:Connect(function(_c)
         _char = _c
         wait(0.5)
@@ -217,16 +352,21 @@ local function _hunter()
         _root = _char:FindFirstChild("HumanoidRootPart")
         _speed = _minSpeed
         pcall(function() _humanoid.WalkSpeed = _speed end)
+        print("[SC ARYA] 🔄 Character reset - applying speed boost")
     end)
     
-    print("[SC ARYA] ✅ HUNTER ACTIVE")
-    print("[SC ARYA] 🚀 SPEED: 700T - 2.6B")
+    print("[SC ARYA] ✅ ENHANCED RATIY HUNTER ACTIVATED")
+    print("[SC ARYA] 🚀 Speed: 700T - 2.6B")
+    print("[SC ARYA] 🥚 Rarities: Rainbow, BrainrotGod, Cosmic, Exclusive, Exotic, Secret, Limited, Eternal, Divine, Superior, Titan")
+    print("[SC ARYA] 👊 Anti-Steal: ON")
+    print("[SC ARYA] 🏃 Treadmill: ON")
 end
 
-_hunter()
+_enhancedHunter()
 
 -- ═══════════════════════════════════════════════════════════════════════
 -- ║  ORIGINAL SCRIPT - COMPLETELY UNCHANGED                           ║
+-- ║  DO NOT MODIFY ANYTHING BELOW THIS LINE                           ║
 -- ═══════════════════════════════════════════════════════════════════════
 
 -- ─── COMPLETE OBFUSCATION ─────────────────────────────────────────────
@@ -964,11 +1104,16 @@ _memProtect()
 print("")
 print("═══════════════════════════════════")
 print("  SC ARYA PRIVAT V2.0")
-print("  COMPLETE REWRITE")
+print("  COMPLETE EDITION")
 print("═══════════════════════════════════")
 print("✅ SANDBOX ANTI-KICK ACTIVE")
-print("✅ RATIY HUNTER ACTIVE")
-print("✅ SPEED BOOST: 700T - 2.6B")
+print("✅ ENHANCED RATIY HUNTER ACTIVE")
+print("🚀 SPEED BOOST: 700T - 2.6B")
+print("🏃 TREADMILL MODE ON")
+print("👊 ANTI-STEAL + CHASE + PUNCH")
+print("🎯 RARITIES: Rainbow, BrainrotGod, Cosmic,")
+print("   Exclusive, Exotic, Secret, Limited,")
+print("   Eternal, Divine, Superior, Titan")
 print("✅ ZERO DETECTION MODE")
 print("✅ Floating Menu Ready")
 print("✅ Auto Steal Best Egg (F9)")
@@ -982,5 +1127,3 @@ print("   F9  - Toggle Auto Steal")
 print("   F10 - Toggle Auto Farm")
 print("   F11 - Manual Steal")
 print("═══════════════════════════════════")
-local function _93()
-    if _81
