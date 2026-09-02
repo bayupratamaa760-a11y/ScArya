@@ -347,7 +347,7 @@ local function createUI()
     logo.Size = UDim2.new(0.7, 0, 0.7, 0)
     logo.Position = UDim2.new(0.15, 0, 0.15, 0)
     logo.BackgroundTransparency = 1
-    logo.Image = "https://files.catbox.moe/yourlogo.png" -- REPLACE WITH YOUR CATBOX LINK
+    logo.Image = "https://files.catbox.moe/y4ru07.jpg" -- REPLACE WITH YOUR CATBOX LINK
     logo.Parent = btnFrame
 
     -- Label
