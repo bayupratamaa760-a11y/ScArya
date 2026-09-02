@@ -1,7 +1,7 @@
 --[[
     ═══════════════════════════════════════
         SC ARYA PRIVAT V1.5
-        ULTIMATE UNDETECTABLE - ANTI-KICK
+        ULTIMATE UNDETECTABLE - FIXED
     ═══════════════════════════════════════
 ]]
 
@@ -341,64 +341,78 @@ local function _93()
     end)
 end
 
--- ─── ANTI-KICK PROTECTION ──────────────────────────────────────────────
+-- ─── ENHANCED ANTI-KICK WITH REJOIN ────────────────────────────────────
 local function _antiKick()
-    -- Hook kick function
-    local _kick = game.Kick
+    local _player = _11
+    local _placeId = game.PlaceId
+    
+    -- Override Kick on game
+    local _origGameKick = game.Kick
     game.Kick = function(...)
-        print("[SC ARYA] 🛡️ Anti-Kick: Blocked kick attempt!")
+        print("[SC ARYA] 🛡️ Anti-Kick: Blocked game kick!")
         return nil
     end
     
-    -- Protect player from being kicked
-    local _player = _11
-    local _origKick = _player.Kick
+    -- Override Kick on player
+    local _origPlayerKick = _player.Kick
     _player.Kick = function(...)
         print("[SC ARYA] 🛡️ Anti-Kick: Blocked player kick!")
         return nil
     end
     
-    -- Monitor for kick attempts
+    -- Monitor for removal and rejoin
     spawn(function()
-        while wait(1) do
+        while wait(0.5) do
             pcall(function()
-                if _player:IsA("Player") and _player.Parent then
-                    -- Check if player is still in game
-                    if not _player.Parent then
-                        print("[SC ARYA] 🔄 Reconnecting...")
-                        _player.Parent = game:GetService("Players")
+                if not _player.Parent or _player.Parent ~= _3 then
+                    print("[SC ARYA] 🔄 Detected removal - rejoining...")
+                    -- Attempt to rejoin the game
+                    local _success, _ = pcall(function()
+                        game:GetService("TeleportService"):Teleport(_placeId)
+                    end)
+                    if not _success then
+                        print("[SC ARYA] ❌ Rejoin failed, trying alternative...")
+                        -- Alternative: reload the place
+                        pcall(function()
+                            game:GetService("TeleportService"):Teleport(_placeId, _player)
+                        end)
                     end
+                    wait(2)
                 end
             end)
         end
     end)
     
-    -- Block kick remotes
-    for _, _remote in pairs(_8:GetDescendants()) do
-        if _remote:IsA("RemoteEvent") or _remote:IsA("RemoteFunction") then
-            local _rName = _remote.Name:lower()
-            if _rName:find("kick") or _rName:find("ban") or _rName:find("remove") or _rName:find("delete") then
-                local _oldFunc = _remote.OnServerEvent
-                _remote.OnServerEvent = function(...)
-                    print("[SC ARYA] 🛡️ Blocked kick remote: " .. _remote.Name)
-                    return nil
+    -- Block kick remotes more aggressively
+    spawn(function()
+        while wait(2) do
+            for _, _remote in pairs(_8:GetDescendants()) do
+                if _remote:IsA("RemoteEvent") or _remote:IsA("RemoteFunction") then
+                    local _rName = _remote.Name:lower()
+                    if _rName:find("kick") or _rName:find("ban") or _rName:find("remove") or _rName:find("delete") or _rName:find("exit") then
+                        if not _remote._blocked then
+                            _remote._blocked = true
+                            local _old = _remote.OnServerEvent
+                            _remote.OnServerEvent = function(...)
+                                print("[SC ARYA] 🛡️ Blocked kick remote: " .. _remote.Name)
+                                return nil
+                            end
+                        end
+                    end
                 end
             end
         end
-    end
+    end)
 end
 
 -- ─── MEMORY PROTECTION ──────────────────────────────────────────────────
 local function _memProtect()
-    -- Protect script from being detected
     local _script = script
     if _script then
         _script.Disabled = true
         wait(0.1)
         _script.Disabled = false
     end
-    
-    -- Randomize script name periodically
     spawn(function()
         while wait(_15(30,120)) do
             local _newName = ""
@@ -413,7 +427,7 @@ local function _memProtect()
     end)
 end
 
--- ─── CREATE COMPLETELY STEALTH UI ──────────────────────────────────────
+-- ─── CREATE COMPLETELY STEALTH UI (DUAL PARENT) ──────────────────────
 local function _95()
     -- Random GUI name
     local _96 = ""
@@ -428,7 +442,18 @@ local function _95()
     _99.IgnoreGuiInset = true
     _99.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
     _99.DisplayOrder = _15(-10,10)
-    _99.Parent = _9
+    
+    -- Try CoreGui first, fallback to PlayerGui
+    local _success, _ = pcall(function()
+        _99.Parent = _9
+        print("[SC ARYA] ✅ GUI attached to CoreGui")
+    end)
+    if not _success then
+        pcall(function()
+            _99.Parent = _11:WaitForChild("PlayerGui")
+            print("[SC ARYA] ✅ GUI attached to PlayerGui")
+        end)
+    end
 
     -- ─── FLOATING BUTTON (FULLY DRAGGABLE) ────────────────────────────
     local _100 = Instance.new("Frame")
@@ -769,22 +794,22 @@ end)
 
 -- ─── STARTUP ─────────────────────────────────────────────────────────────
 task.wait(_15(3,8))
-_antiKick()  -- Added anti-kick protection
+_antiKick()   -- Enhanced anti-kick with rejoin
 _71()
 _79()
 task.wait(_15(1,4))
-_95()
+_95()         -- GUI now tries CoreGui then PlayerGui
 task.wait(_15(1,3))
 _38()
-_memProtect()  -- Added memory protection
+_memProtect()
 
 print("")
 print("═══════════════════════════════════")
 print("  SC ARYA PRIVAT V1.5")
-print("  ULTIMATE UNDETECTABLE")
+print("  ULTIMATE UNDETECTABLE - FIXED")
 print("═══════════════════════════════════")
 print("✅ ZERO DETECTION ACTIVE")
-print("✅ ANTI-KICK PROTECTION ACTIVE")
+print("✅ ANTI-KICK WITH REJOIN ACTIVE")
 print("✅ MEMORY PROTECTION ACTIVE")
 print("✅ Floating Menu Ready (Draggable)")
 print("✅ Auto Steal Best Egg (F9)")
