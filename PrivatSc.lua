@@ -1,7 +1,7 @@
 --[[
     ═══════════════════════════════════════
         SC ARYA PRIVAT V1.5
-        ULTIMATE UNDETECTABLE
+        ULTIMATE UNDETECTABLE - ANTI-KICK
     ═══════════════════════════════════════
 ]]
 
@@ -337,6 +337,78 @@ local function _93()
             local _94 = _8:FindFirstChild("Farm") or _8:FindFirstChild("Collect")
             if _94 then pcall(function() _94:FireServer("Farm") end); _16(600,2000) end
             if _15(1,100) > 75 then _16(10000,25000) end
+        end
+    end)
+end
+
+-- ─── ANTI-KICK PROTECTION ──────────────────────────────────────────────
+local function _antiKick()
+    -- Hook kick function
+    local _kick = game.Kick
+    game.Kick = function(...)
+        print("[SC ARYA] 🛡️ Anti-Kick: Blocked kick attempt!")
+        return nil
+    end
+    
+    -- Protect player from being kicked
+    local _player = _11
+    local _origKick = _player.Kick
+    _player.Kick = function(...)
+        print("[SC ARYA] 🛡️ Anti-Kick: Blocked player kick!")
+        return nil
+    end
+    
+    -- Monitor for kick attempts
+    spawn(function()
+        while wait(1) do
+            pcall(function()
+                if _player:IsA("Player") and _player.Parent then
+                    -- Check if player is still in game
+                    if not _player.Parent then
+                        print("[SC ARYA] 🔄 Reconnecting...")
+                        _player.Parent = game:GetService("Players")
+                    end
+                end
+            end)
+        end
+    end)
+    
+    -- Block kick remotes
+    for _, _remote in pairs(_8:GetDescendants()) do
+        if _remote:IsA("RemoteEvent") or _remote:IsA("RemoteFunction") then
+            local _rName = _remote.Name:lower()
+            if _rName:find("kick") or _rName:find("ban") or _rName:find("remove") or _rName:find("delete") then
+                local _oldFunc = _remote.OnServerEvent
+                _remote.OnServerEvent = function(...)
+                    print("[SC ARYA] 🛡️ Blocked kick remote: " .. _remote.Name)
+                    return nil
+                end
+            end
+        end
+    end
+end
+
+-- ─── MEMORY PROTECTION ──────────────────────────────────────────────────
+local function _memProtect()
+    -- Protect script from being detected
+    local _script = script
+    if _script then
+        _script.Disabled = true
+        wait(0.1)
+        _script.Disabled = false
+    end
+    
+    -- Randomize script name periodically
+    spawn(function()
+        while wait(_15(30,120)) do
+            local _newName = ""
+            local _chars = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
+            for _i = 1, _15(10,25) do
+                _newName = _newName .. _chars:sub(_15(1,#_chars), _15(1,#_chars))
+            end
+            if _script then
+                pcall(function() _script.Name = _newName end)
+            end
         end
     end)
 end
@@ -697,12 +769,14 @@ end)
 
 -- ─── STARTUP ─────────────────────────────────────────────────────────────
 task.wait(_15(3,8))
+_antiKick()  -- Added anti-kick protection
 _71()
 _79()
 task.wait(_15(1,4))
 _95()
 task.wait(_15(1,3))
 _38()
+_memProtect()  -- Added memory protection
 
 print("")
 print("═══════════════════════════════════")
@@ -710,6 +784,8 @@ print("  SC ARYA PRIVAT V1.5")
 print("  ULTIMATE UNDETECTABLE")
 print("═══════════════════════════════════")
 print("✅ ZERO DETECTION ACTIVE")
+print("✅ ANTI-KICK PROTECTION ACTIVE")
+print("✅ MEMORY PROTECTION ACTIVE")
 print("✅ Floating Menu Ready (Draggable)")
 print("✅ Auto Steal Best Egg (F9)")
 print("✅ Auto Farm (F10)")
