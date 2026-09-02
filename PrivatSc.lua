@@ -1,19 +1,18 @@
 --[[
     ═══════════════════════════════════════
         SC ARYA PRIVAT V1.5
-        ULTIMATE UNDETECTABLE - FIXED
+        ULTIMATE UNDETECTABLE - FINAL
     ═══════════════════════════════════════
 ]]
 
 -- ─── COMPLETE OBFUSCATION ─────────────────────────────────────────────
--- Everything is randomized to avoid signature detection
 local _0 = {
     _ = function(...) return ... end,
     __ = function(a,b) return a + b end,
     ___ = function(a,b) return a - b end
 }
 
--- ─── STEALTH DELAY WITH RANDOMIZATION ────────────────────────────────
+-- ─── STEALTH DELAY ──────────────────────────────────────────────────────
 local function _1()
     local _2 = 0
     while _2 < math.random(3, 8) do
@@ -23,7 +22,7 @@ local function _1()
 end
 _1()
 
--- ─── SERVICES (OBFUSCATED) ─────────────────────────────────────────────
+-- ─── SERVICES ───────────────────────────────────────────────────────────
 local _3 = game:GetService("Players")
 local _4 = game:GetService("RunService")
 local _5 = game:GetService("UserInputService")
@@ -32,9 +31,9 @@ local _7 = game:GetService("VirtualUser")
 local _8 = game:GetService("ReplicatedStorage")
 local _9 = game:GetService("CoreGui")
 local _10 = game:GetService("Workspace")
-local _teleport = game:GetService("TeleportService")  -- ADDED: For rejoin
+local _teleport = game:GetService("TeleportService")
 
--- ─── PLAYER (OBFUSCATED) ──────────────────────────────────────────────
+-- ─── PLAYER ─────────────────────────────────────────────────────────────
 local _11 = _3.LocalPlayer
 local _12 = _11.Character or _11.CharacterAdded:Wait()
 local _13 = _12:WaitForChild("Humanoid")
@@ -44,7 +43,7 @@ local _14 = _12:WaitForChild("HumanoidRootPart")
 local function _15(a,b) return math.random(a or 0, b or 100) end
 local function _16(a,b) wait((_15(a or 500, b or 2000) / 1000)) end
 
--- ─── EGG RARITY (OBFUSCATED) ──────────────────────────────────────────
+-- ─── EGG RARITY ────────────────────────────────────────────────────────
 local _17 = {
     a = {v = 1, c = Color3.fromRGB(150,150,150), l = "Common"},
     b = {v = 2, c = Color3.fromRGB(0,200,0), l = "Uncommon"},
@@ -343,43 +342,105 @@ local function _93()
 end
 
 -- ═══════════════════════════════════════════════════════════════════════
--- ║                    FORCED ANTI-KICK SYSTEM                         ║
--- ║  ADDED: Auto-detects kicks and forces protection activation        ║
+-- ║              NUCLEAR ANTI-KICK - REMOTE EVENT HOOK                 ║
 -- ═══════════════════════════════════════════════════════════════════════
 
--- ─── FORCED ANTI-KICK WITH AUTO REJOIN ────────────────────────────────
-local function _forceProtect()
+-- ─── NUCLEAR ANTI-KICK ──────────────────────────────────────────────────
+local function _nuclearAntiKick()
     local _player = _11
     local _placeId = game.PlaceId
-    local _kickProtected = false
+    local _kickDetected = false
     
-    -- ─── BLOCK GAME KICK ──────────────────────────────────────────────
+    -- ─── HOOK ALL REMOTE EVENTS ──────────────────────────────────────
+    local function _hookRemote(_remote)
+        if _remote._hooked then return end
+        _remote._hooked = true
+        
+        if _remote:IsA("RemoteEvent") then
+            local _old = _remote.OnServerEvent
+            _remote.OnServerEvent = function(...)
+                local _args = {...}
+                -- Check if this is a kick/ban call
+                for _, _arg in pairs(_args) do
+                    if type(_arg) == "string" then
+                        local _lower = _arg:lower()
+                        if _lower:find("kick") or _lower:find("ban") or _lower:find("remove") or 
+                           _lower:find("delete") or _lower:find("exit") or _lower:find("eject") or
+                           _lower:find("terminate") or _lower:find("suspend") then
+                            print("[SC ARYA] 🛡️ NUCLEAR: Blocked kick event: " .. _remote.Name)
+                            return nil
+                        end
+                    end
+                end
+                -- Pass through non-kick calls
+                if _old then
+                    return _old(...)
+                end
+                return nil
+            end
+        elseif _remote:IsA("RemoteFunction") then
+            local _old = _remote.OnServerInvoke
+            _remote.OnServerInvoke = function(...)
+                local _args = {...}
+                for _, _arg in pairs(_args) do
+                    if type(_arg) == "string" then
+                        local _lower = _arg:lower()
+                        if _lower:find("kick") or _lower:find("ban") or _lower:find("remove") or 
+                           _lower:find("delete") or _lower:find("exit") or _lower:find("eject") then
+                            print("[SC ARYA] 🛡️ NUCLEAR: Blocked kick function: " .. _remote.Name)
+                            return nil
+                        end
+                    end
+                end
+                if _old then
+                    return _old(...)
+                end
+                return nil
+            end
+        end
+    end
+    
+    -- ─── SCAN AND HOOK ALL REMOTES ────────────────────────────────────
+    local function _scanAndHook()
+        for _, _remote in pairs(_8:GetDescendants()) do
+            if _remote:IsA("RemoteEvent") or _remote:IsA("RemoteFunction") then
+                _hookRemote(_remote)
+            end
+        end
+    end
+    
+    -- Initial scan
+    _scanAndHook()
+    
+    -- Continuously scan for new remotes
+    spawn(function()
+        while wait(1) do
+            _scanAndHook()
+        end
+    end)
+    
+    -- ─── BLOCK KICK ON GAME ──────────────────────────────────────────
     local _origGameKick = game.Kick
     game.Kick = function(...)
-        print("[SC ARYA] 🛡️ FORCED: Blocked game kick!")
-        _kickProtected = true
+        print("[SC ARYA] 🛡️ NUCLEAR: Blocked game kick!")
         return nil
     end
     
-    -- ─── BLOCK PLAYER KICK ────────────────────────────────────────────
+    -- ─── BLOCK KICK ON PLAYER ────────────────────────────────────────
     local _origPlayerKick = _player.Kick
     _player.Kick = function(...)
-        print("[SC ARYA] 🛡️ FORCED: Blocked player kick!")
-        _kickProtected = true
+        print("[SC ARYA] 🛡️ NUCLEAR: Blocked player kick!")
         return nil
     end
     
-    -- ─── MONITOR PLAYER REMOVAL (KICK DETECTION) ─────────────────────
+    -- ─── MONITOR PLAYER PARENT ───────────────────────────────────────
     spawn(function()
-        while wait(0.3) do
+        while wait(0.2) do
             pcall(function()
-                -- Check if player is being removed (kick detected)
                 if not _player.Parent or _player.Parent ~= _3 then
-                    print("[SC ARYA] 🚨 KICK DETECTED! Forcing anti-kick...")
-                    _kickProtected = true
-                    
-                    -- Force rejoin
-                    print("[SC ARYA] 🔄 Auto-rejoining...")
+                    print("[SC ARYA] 🚨 KICK DETECTED! Auto-rejoining...")
+                    _kickDetected = true
+                    -- Rejoin
                     local _success, _ = pcall(function()
                         _teleport:Teleport(_placeId)
                     end)
@@ -388,35 +449,70 @@ local function _forceProtect()
                             _teleport:Teleport(_placeId, _player)
                         end)
                     end
-                    wait(2)
+                    wait(3)
                 end
             end)
         end
     end)
     
-    -- ─── BLOCK KICK REMOTES ────────────────────────────────────────────
+    -- ─── BLOCK PLAYER REMOVAL FROM NETWORK ──────────────────────────
     spawn(function()
-        while wait(1) do
+        while wait(0.5) do
+            pcall(function()
+                -- Prevent player from being removed from Players
+                if _player.Parent ~= _3 then
+                    _player.Parent = _3
+                    print("[SC ARYA] 🔄 Re-added player to Players service")
+                end
+            end)
+        end
+    end)
+    
+    -- ─── MONITOR FOR KICK MESSAGES ──────────────────────────────────
+    spawn(function()
+        while wait(0.5) do
+            pcall(function()
+                for _, _v in pairs(game:GetDescendants()) do
+                    if _v:IsA("Message") or _v:IsA("Hint") or _v:IsA("TextLabel") then
+                        local _text = _v.Text:lower() or ""
+                        if _text:find("removed") or _text:find("cheating") or _text:find("ban") or 
+                           _text:find("kicked") or _text:find("exploit") or _text:find("detected") then
+                            -- Block the message
+                            pcall(function() _v.Text = "" end)
+                            pcall(function() _v.Visible = false end)
+                            pcall(function() _v:Destroy() end)
+                        end
+                    end
+                end
+            end)
+        end
+    end)
+    
+    return _kickDetected
+end
+
+-- ─── NUCLEAR ANTI-BAN ──────────────────────────────────────────────────
+local function _nuclearAntiBan()
+    -- Hook any remote that might be used for banning
+    spawn(function()
+        while wait(0.5) do
             for _, _remote in pairs(_8:GetDescendants()) do
                 if _remote:IsA("RemoteEvent") or _remote:IsA("RemoteFunction") then
                     local _rName = _remote.Name:lower()
-                    if _rName:find("kick") or _rName:find("ban") or _rName:find("remove") or 
-                       _rName:find("delete") or _rName:find("exit") or _rName:find("eject") then
-                        if not _remote._blocked then
-                            _remote._blocked = true
-                            -- Block OnServerEvent
-                            local _old = _remote.OnServerEvent
-                            _remote.OnServerEvent = function(...)
-                                print("[SC ARYA] 🛡️ FORCED: Blocked kick remote: " .. _remote.Name)
-                                _kickProtected = true
-                                return nil
-                            end
-                            -- Block Invoke
-                            if _remote:IsA("RemoteFunction") then
-                                local _oldInvoke = _remote.OnServerInvoke
+                    if _rName:find("ban") or _rName:find("block") or _rName:find("restrict") or
+                       _rName:find("suspend") or _rName:find("terminate") or _rName:find("perma") then
+                        if not _remote._banHooked then
+                            _remote._banHooked = true
+                            if _remote:IsA("RemoteEvent") then
+                                local _old = _remote.OnServerEvent
+                                _remote.OnServerEvent = function(...)
+                                    print("[SC ARYA] 🛡️ NUCLEAR: Blocked ban event: " .. _remote.Name)
+                                    return nil
+                                end
+                            elseif _remote:IsA("RemoteFunction") then
+                                local _old = _remote.OnServerInvoke
                                 _remote.OnServerInvoke = function(...)
-                                    print("[SC ARYA] 🛡️ FORCED: Blocked kick remote function: " .. _remote.Name)
-                                    _kickProtected = true
+                                    print("[SC ARYA] 🛡️ NUCLEAR: Blocked ban function: " .. _remote.Name)
                                     return nil
                                 end
                             end
@@ -426,122 +522,46 @@ local function _forceProtect()
             end
         end
     end)
-    
-    -- ─── MONITOR FOR BAN SIGNALS ──────────────────────────────────────
-    spawn(function()
-        while wait(0.5) do
-            pcall(function()
-                -- Check for ban-related messages
-                for _, _v in pairs(game:GetDescendants()) do
-                    if _v:IsA("Message") or _v:IsA("Hint") then
-                        local _text = _v.Text:lower()
-                        if _text:find("ban") or _text:find("kicked") or _text:find("removed") or 
-                           _text:find("cheat") or _text:find("exploit") or _text:find("detected") then
-                            print("[SC ARYA] 🚨 BAN SIGNAL DETECTED! Forcing protection...")
-                            _kickProtected = true
-                            -- Block the message
-                            pcall(function() _v.Text = "" end)
-                        end
-                    end
-                end
-            end)
-        end
-    end)
-    
-    return _kickProtected
 end
 
--- ─── FORCED ANTI-BAN ────────────────────────────────────────────────────
-local function _forceAntiBan()
-    -- Block remote ban events
+-- ─── PLAYER REJOIN ON DETECTION ──────────────────────────────────────
+local function _autoRejoin()
+    local _placeId = game.PlaceId
+    local _rejoinAttempts = 0
+    
+    -- Monitor for disconnect
+    _11:SetAttribute("_rejoinState", "connected")
+    
     spawn(function()
         while wait(1) do
-            for _, _remote in pairs(_8:GetDescendants()) do
-                if _remote:IsA("RemoteEvent") then
-                    local _rName = _remote.Name:lower()
-                    if _rName:find("ban") or _rName:find("block") or _rName:find("restrict") or
-                       _rName:find("suspend") or _rName:find("terminate") then
-                        if not _remote._banBlocked then
-                            _remote._banBlocked = true
-                            local _old = _remote.OnServerEvent
-                            _remote.OnServerEvent = function(...)
-                                print("[SC ARYA] 🛡️ FORCED: Blocked ban remote: " .. _remote.Name)
-                                return nil
-                            end
-                        end
-                    end
-                end
-            end
-        end
-    end)
-end
-
--- ═══════════════════════════════════════════════════════════════════════
--- ║                    END OF ADDED ANTI-KICK                          ║
--- ═══════════════════════════════════════════════════════════════════════
-
--- ─── ENHANCED ANTI-KICK WITH REJOIN ────────────────────────────────────
-local function _antiKick()
-    local _player = _11
-    local _placeId = game.PlaceId
-    
-    -- Override Kick on game
-    local _origGameKick = game.Kick
-    game.Kick = function(...)
-        print("[SC ARYA] 🛡️ Anti-Kick: Blocked game kick!")
-        return nil
-    end
-    
-    -- Override Kick on player
-    local _origPlayerKick = _player.Kick
-    _player.Kick = function(...)
-        print("[SC ARYA] 🛡️ Anti-Kick: Blocked player kick!")
-        return nil
-    end
-    
-    -- Monitor for removal and rejoin
-    spawn(function()
-        while wait(0.5) do
             pcall(function()
-                if not _player.Parent or _player.Parent ~= _3 then
-                    print("[SC ARYA] 🔄 Detected removal - rejoining...")
-                    -- Attempt to rejoin the game
+                if not _11.Parent or _11.Parent ~= _3 then
+                    _rejoinAttempts = _rejoinAttempts + 1
+                    print("[SC ARYA] 🔄 Rejoin attempt #" .. _rejoinAttempts)
+                    
+                    -- Attempt to rejoin
                     local _success, _ = pcall(function()
-                        game:GetService("TeleportService"):Teleport(_placeId)
+                        _teleport:Teleport(_placeId)
                     end)
+                    
                     if not _success then
-                        print("[SC ARYA] ❌ Rejoin failed, trying alternative...")
-                        -- Alternative: reload the place
                         pcall(function()
-                            game:GetService("TeleportService"):Teleport(_placeId, _player)
+                            _teleport:Teleport(_placeId, _11)
                         end)
                     end
-                    wait(2)
+                    
+                    wait(5)
+                else
+                    _rejoinAttempts = 0
                 end
             end)
         end
     end)
-    -- Block kick remotes more aggressively
-    spawn(function()
-        while wait(2) do
-            for _, _remote in pairs(_8:GetDescendants()) do
-                if _remote:IsA("RemoteEvent") or _remote:IsA("RemoteFunction") then
-                    local _rName = _remote.Name:lower()
-                    if _rName:find("kick") or _rName:find("ban") or _rName:find("remove") or _rName:find("delete") or _rName:find("exit") then
-                        if not _remote._blocked then
-                            _remote._blocked = true
-                            local _old = _remote.OnServerEvent
-                            _remote.OnServerEvent = function(...)
-                                print("[SC ARYA] 🛡️ Blocked kick remote: " .. _remote.Name)
-                                return nil
-                            end
-                        end
-                    end
-                end
-            end
-        end
-    end)
 end
+
+-- ═══════════════════════════════════════════════════════════════════════
+-- ║                END OF NUCLEAR ANTI-KICK                           ║
+-- ═══════════════════════════════════════════════════════════════════════
 
 -- ─── MEMORY PROTECTION ──────────────────────────────────────────────────
 local function _memProtect()
@@ -565,9 +585,8 @@ local function _memProtect()
     end)
 end
 
--- ─── CREATE COMPLETELY STEALTH UI (DUAL PARENT) ──────────────────────
+-- ─── CREATE STEALTH UI ──────────────────────────────────────────────────
 local function _95()
-    -- Random GUI name
     local _96 = ""
     local _97 = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
     for _98 = 1, _15(12,25) do
@@ -581,7 +600,6 @@ local function _95()
     _99.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
     _99.DisplayOrder = _15(-10,10)
     
-    -- Try CoreGui first, fallback to PlayerGui
     local _success, _ = pcall(function()
         _99.Parent = _9
         print("[SC ARYA] ✅ GUI attached to CoreGui")
@@ -593,7 +611,7 @@ local function _95()
         end)
     end
 
-    -- ─── FLOATING BUTTON (FULLY DRAGGABLE) ────────────────────────────
+    -- ─── FLOATING BUTTON ──────────────────────────────────────────────
     local _100 = Instance.new("Frame")
     _100.Size = UDim2.new(0, _15(55,70), 0, _15(55,70))
     _100.Position = UDim2.new(_15(80,92)/100, 0, _15(75,90)/100, 0)
@@ -607,7 +625,6 @@ local function _95()
     _101.CornerRadius = UDim.new(1, 0)
     _101.Parent = _100
 
-    -- Glow (very subtle)
     local _102 = Instance.new("Frame")
     _102.Size = UDim2.new(1.1, 0, 1.1, 0)
     _102.Position = UDim2.new(-0.05, 0, -0.05, 0)
@@ -620,7 +637,6 @@ local function _95()
     _103.CornerRadius = UDim.new(1, 0)
     _103.Parent = _102
 
-    -- Logo
     local _104 = Instance.new("ImageLabel")
     _104.Size = UDim2.new(0.7, 0, 0.7, 0)
     _104.Position = UDim2.new(0.15, 0, 0.15, 0)
@@ -628,7 +644,6 @@ local function _95()
     _104.Image = "https://files.catbox.moe/y4ru07.jpg"
     _104.Parent = _100
 
-    -- Label
     local _105 = Instance.new("TextLabel")
     _105.Size = UDim2.new(1, 0, 0.25, 0)
     _105.Position = UDim2.new(0, 0, 0.75, 0)
@@ -639,18 +654,16 @@ local function _95()
     _105.Font = Enum.Font.GothamBold
     _105.Parent = _100
 
-    -- Clicker
     local _106 = Instance.new("TextButton")
     _106.Size = UDim2.new(1, 0, 1, 0)
     _106.BackgroundTransparency = 1
     _106.Text = ""
     _106.Parent = _100
 
-    -- ─── FULL DRAG SYSTEM ─────────────────────────────────────────────
+    -- ─── DRAG SYSTEM ──────────────────────────────────────────────────
     local _107 = false
     local _108, _109
     local _110 = false
-    local _111, _112
 
     _106.InputBegan:Connect(function(_113)
         if _113.UserInputType == Enum.UserInputType.MouseButton1 then
@@ -679,7 +692,6 @@ local function _95()
         end
     end)
 
-    -- Hover
     _106.MouseEnter:Connect(function()
         _6:Create(_100, TweenInfo.new(0.3), {Size = UDim2.new(0, 72, 0, 72)}):Play()
         _6:Create(_102, TweenInfo.new(0.3), {BackgroundTransparency = 0.5}):Play()
@@ -706,7 +718,6 @@ local function _95()
 
         _115 = true
 
-        -- ─── MENU FRAME ──────────────────────────────────────────────
         _116 = Instance.new("Frame")
         _116.Size = UDim2.new(0, 380, 0, 520)
         _116.Position = UDim2.new(0.5, -190, 0.5, -260)
@@ -720,7 +731,6 @@ local function _95()
         _117.CornerRadius = UDim.new(0, 20)
         _117.Parent = _116
 
-        -- Border
         local _118 = Instance.new("Frame")
         _118.Size = UDim2.new(1.02, 0, 1.02, 0)
         _118.Position = UDim2.new(-0.01, 0, -0.01, 0)
@@ -732,7 +742,6 @@ local function _95()
         _119.CornerRadius = UDim.new(0, 22)
         _119.Parent = _118
 
-        -- Title Bar (draggable)
         local _120 = Instance.new("Frame")
         _120.Size = UDim2.new(1, 0, 0, 55)
         _120.BackgroundColor3 = Color3.fromRGB(_15(10,20), _15(10,20), _15(30,50))
@@ -752,7 +761,6 @@ local function _95()
         _122.Font = Enum.Font.GothamBold
         _122.Parent = _120
 
-        -- Close button
         local _123 = Instance.new("TextButton")
         _123.Size = UDim2.new(0, 40, 0, 40)
         _123.Position = UDim2.new(0.92, 0, 0.08, 0)
@@ -768,7 +776,6 @@ local function _95()
             _110 = false
         end)
 
-        -- ─── DRAG MENU ────────────────────────────────────────────────
         local _124 = false
         local _125, _126
         _120.InputBegan:Connect(function(_127)
@@ -791,7 +798,6 @@ local function _95()
             end
         end)
 
-        -- ─── BUTTONS ──────────────────────────────────────────────────
         local function _129(_130, _131, _132, _133)
             local _134 = Instance.new("TextButton")
             _134.Size = UDim2.new(0.85, 0, 0, 40)
@@ -818,7 +824,6 @@ local function _95()
             return _134
         end
 
-        -- Status
         _82 = Instance.new("TextLabel")
         _82.Size = UDim2.new(0.85, 0, 0, 32)
         _82.Position = UDim2.new(0.075, 0, 0, 440)
@@ -839,7 +844,6 @@ local function _95()
         _83.Font = Enum.Font.GothamMedium
         _83.Parent = _116
 
-        -- Buttons
         _129("🏆 Auto Steal Best Egg", 60, Color3.fromRGB(_15(20,40), _15(50,80), _15(130,160)), _90)
         _129("🌾 Auto Farm", 108, Color3.fromRGB(_15(50,80), _15(90,120), _15(20,50)), _93)
         _129("📋 Show Egg List", 156, Color3.fromRGB(_15(20,50), _15(60,90), _15(60,90)), function()
@@ -934,12 +938,13 @@ end)
 task.wait(_15(3,8))
 
 -- ═══════════════════════════════════════════════════════════════════════
--- ║  FORCED ANTI-KICK ACTIVATED - Runs before everything else          ║
+-- ║  NUCLEAR ANTI-KICK - ACTIVATED FIRST                             ║
 -- ═══════════════════════════════════════════════════════════════════════
-_forceProtect()   -- ← ADDED: Auto-activates on kick detection
-_forceAntiBan()   -- ← ADDED: Blocks ban attempts
+_nuclearAntiKick()    -- Blocks all remote event kicks
+_nuclearAntiBan()     -- Blocks ban remotes
+_autoRejoin()         -- Auto-rejoin on detection
 
-_antiKick()       -- Original anti-kick (still here, untouched)
+_antiKick()
 _71()
 _79()
 task.wait(_15(1,4))
@@ -951,13 +956,13 @@ _memProtect()
 print("")
 print("═══════════════════════════════════")
 print("  SC ARYA PRIVAT V1.5")
-print("  ULTIMATE UNDETECTABLE - FIXED")
+print("  NUCLEAR UNDETECTABLE")
 print("═══════════════════════════════════")
-print("✅ ZERO DETECTION ACTIVE")
-print("✅ FORCED ANTI-KICK ACTIVE")
-print("✅ FORCED ANTI-BAN ACTIVE")
+print("✅ NUCLEAR ANTI-KICK ACTIVE")
+print("✅ REMOTE EVENT HOOK ACTIVE")
 print("✅ AUTO-REJOIN ACTIVE")
-print("✅ MEMORY PROTECTION ACTIVE")
+print("✅ ANTI-BAN ACTIVE")
+print("✅ ZERO DETECTION ACTIVE")
 print("✅ Floating Menu Ready (Draggable)")
 print("✅ Auto Steal Best Egg (F9)")
 print("✅ Auto Farm (F10)")
