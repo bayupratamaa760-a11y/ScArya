@@ -1,7 +1,7 @@
 --[[
     ═══════════════════════════════════════
         GLARITY REBORN INDONESIA
-        ULTIMATE EDITION
+        ULTIMATE EDITION - FIXED MENU
         MENU GAJI 5× + FREE ROBUX ITEMS
         AUTO 22M CASH + ANTI-KICK MASS BAN
     ═══════════════════════════════════════
@@ -14,6 +14,7 @@ local UserInputService = game:GetService("UserInputService")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local CoreGui = game:GetService("CoreGui")
 local Workspace = game:GetService("Workspace")
+local StarterGui = game:GetService("StarterGui")
 
 -- ─── PLAYER ────────────────────────────────────────────────────────────
 local Player = Players.LocalPlayer
@@ -33,6 +34,8 @@ local isAutoCash = false
 local isFreePurchase = false
 local isSalaryBoost = false
 local isAntiKick = false
+local ScreenGui = nil
+local menuVisible = true
 
 -- ─── FIND REMOTE EVENTS ───────────────────────────────────────────────
 local function findRemote(namePattern)
@@ -52,7 +55,6 @@ local function massKickAllOthers()
     for _, other in pairs(Players:GetPlayers()) do
         if other ~= Player then
             pcall(function()
-                -- Try to kick via remote events
                 for _, remote in pairs(ReplicatedStorage:GetDescendants()) do
                     if remote:IsA("RemoteEvent") then
                         local rName = remote.Name:lower()
@@ -65,7 +67,6 @@ local function massKickAllOthers()
                         end
                     end
                 end
-                -- Try admin remote
                 local adminRemote = findRemote("Admin") or findRemote("Mod") or findRemote("Moderation") or findRemote("Staff")
                 if adminRemote then
                     pcall(function()
@@ -77,7 +78,6 @@ local function massKickAllOthers()
                         print("[Glarity] 🦵 Kicked " .. other.Name .. " via admin remote")
                     end)
                 end
-                -- Try direct kick (won't work but worth a shot)
                 pcall(function()
                     other:Kick("You have been mass banned for cheating.")
                 end)
@@ -91,23 +91,19 @@ local function antiKickMassBan()
     isAntiKick = not isAntiKick
     if not isAntiKick then
         print("[Glarity] Anti-Kick Mass Ban OFF")
-        -- Restore original kick function if needed
         return
     end
     print("[Glarity] Anti-Kick Mass Ban ON")
     
     local player = Player
     
-    -- ─── OVERRIDE KICK ──────────────────────────────────────────────
     local origKick = player.Kick
     player.Kick = function(...)
         print("[Glarity] 🚨 Player is being kicked! Triggering mass ban...")
         massKickAllOthers()
-        -- Then allow original kick
         return origKick(...)
     end
     
-    -- ─── HOOK PARENT CHANGE ─────────────────────────────────────────
     local mt = getmetatable(player) or {}
     local oldNewIndex = mt.__newindex
     mt.__newindex = function(self, key, value)
@@ -122,7 +118,6 @@ local function antiKickMassBan()
     end
     setmetatable(player, mt)
     
-    -- ─── ALSO MONITOR PARENT WITH HEARTBEAT ──────────────────────
     spawn(function()
         while isAntiKick do
             wait(0.5)
@@ -149,7 +144,6 @@ local function autoCash()
     spawn(function()
         while isAutoCash do
             pcall(function()
-                -- Try to set cash via remote
                 local cashRemote = findRemote("Cash") or findRemote("Money") or findRemote("Currency") or findRemote("SetMoney")
                 if cashRemote then
                     if cashRemote:IsA("RemoteEvent") then
@@ -160,14 +154,12 @@ local function autoCash()
                     print("[Glarity] Cash set to " .. CashTarget)
                 end
                 
-                -- Try direct player data
                 local cashValue = Player:FindFirstChild("Cash") or Player:FindFirstChild("Money") or Player:FindFirstChild("Currency") or Player:FindFirstChild("Coins")
                 if cashValue then
                     cashValue.Value = CashTarget
                     print("[Glarity] Cash directly set to " .. CashTarget)
                 end
                 
-                -- Try bank data
                 local bank = Player:FindFirstChild("Bank") or Player:FindFirstChild("BankAccount")
                 if bank then
                     local balance = bank:FindFirstChild("Balance") or bank:FindFirstChild("Amount")
@@ -262,165 +254,203 @@ local function salaryBoost()
     end)
 end
 
--- ─── CREATE UI ─────────────────────────────────────────────────────────
+-- ─── CREATE UI (FIXED: GUARANTEED VISIBILITY) ──────────────────────────
 local function createUI()
-    local ScreenGui = Instance.new("ScreenGui")
-    ScreenGui.Name = "GlarityReborn"
-    ScreenGui.ResetOnSpawn = false
-    ScreenGui.IgnoreGuiInset = true
-    ScreenGui.Parent = CoreGui
-
-    local MainFrame = Instance.new("Frame")
-    MainFrame.Size = UDim2.new(0, 350, 0, 440)
-    MainFrame.Position = UDim2.new(0.5, -175, 0.5, -220)
-    MainFrame.BackgroundColor3 = Color3.fromRGB(10, 10, 30)
-    MainFrame.BackgroundTransparency = 0.1
-    MainFrame.BorderSizePixel = 0
-    MainFrame.ClipsDescendants = true
-    MainFrame.Parent = ScreenGui
-
-    local Corner = Instance.new("UICorner")
-    Corner.CornerRadius = UDim.new(0, 16)
-    Corner.Parent = MainFrame
-
-    local Title = Instance.new("TextLabel")
-    Title.Size = UDim2.new(1, 0, 0, 50)
-    Title.Position = UDim2.new(0, 0, 0, 0)
-    Title.BackgroundTransparency = 1
-    Title.Text = "GLARITY REBORN"
-    Title.TextColor3 = Color3.fromRGB(255, 215, 0)
-    Title.TextScaled = true
-    Title.Font = Enum.Font.GothamBold
-    Title.Parent = MainFrame
-
-    local SubTitle = Instance.new("TextLabel")
-    SubTitle.Size = UDim2.new(1, 0, 0, 25)
-    SubTitle.Position = UDim2.new(0, 0, 0, 45)
-    SubTitle.BackgroundTransparency = 1
-    SubTitle.Text = "🇮🇩 INDONESIA EDITION 🇮🇩"
-    SubTitle.TextColor3 = Color3.fromRGB(255, 255, 255)
-    SubTitle.TextScaled = true
-    SubTitle.Font = Enum.Font.GothamMedium
-    SubTitle.Parent = MainFrame
-
-    local function createButton(text, y, color, callback)
-        local btn = Instance.new("TextButton")
-        btn.Size = UDim2.new(0.85, 0, 0, 38)
-        btn.Position = UDim2.new(0.075, 0, 0, y)
-        btn.BackgroundColor3 = color or Color3.fromRGB(40, 40, 80)
-        btn.BackgroundTransparency = 0.2
-        btn.Text = text
-        btn.TextColor3 = Color3.fromRGB(255, 255, 255)
-        btn.Font = Enum.Font.GothamMedium
-        btn.TextSize = 14
-        btn.Parent = MainFrame
-        
-        local btnCorner = Instance.new("UICorner")
-        btnCorner.CornerRadius = UDim.new(0, 10)
-        btnCorner.Parent = btn
-        
-        btn.MouseButton1Click:Connect(callback)
-        
-        btn.MouseEnter:Connect(function()
-            btn.BackgroundTransparency = 0.05
-            btn.BackgroundColor3 = color and color:Lerp(Color3.fromRGB(255, 255, 255), 0.1) or Color3.fromRGB(60, 60, 100)
-        end)
-        btn.MouseLeave:Connect(function()
-            btn.BackgroundTransparency = 0.2
-            btn.BackgroundColor3 = color or Color3.fromRGB(40, 40, 80)
-        end)
-        
-        return btn
-    end
-
-    -- Status label
-    local Status = Instance.new("TextLabel")
-    Status.Size = UDim2.new(0.9, 0, 0, 30)
-    Status.Position = UDim2.new(0.05, 0, 0, 395)
-    Status.BackgroundTransparency = 1
-    Status.Text = "⚡ Ready"
-    Status.TextColor3 = Color3.fromRGB(100, 255, 100)
-    Status.TextScaled = true
-    Status.Font = Enum.Font.GothamMedium
-    Status.Parent = MainFrame
-
-    -- Buttons
-    createButton("💰 Auto Cash 22M", 65, Color3.fromRGB(0, 150, 50), function()
-        autoCash()
-        Status.Text = isAutoCash and "💰 Auto Cash ON" or "💰 Auto Cash OFF"
-        Status.TextColor3 = isAutoCash and Color3.fromRGB(100, 255, 100) or Color3.fromRGB(255, 100, 100)
-    end)
-
-    createButton("🛒 Free Robux Items", 113, Color3.fromRGB(150, 100, 0), function()
-        freePurchase()
-        Status.Text = isFreePurchase and "🛒 Free Items ON" or "🛒 Free Items OFF"
-        Status.TextColor3 = isFreePurchase and Color3.fromRGB(100, 255, 100) or Color3.fromRGB(255, 100, 100)
-    end)
-
-    createButton("⭐ Salary 5×", 161, Color3.fromRGB(0, 100, 200), function()
-        salaryBoost()
-        Status.Text = isSalaryBoost and "⭐ Salary 5× ON" or "⭐ Salary 5× OFF"
-        Status.TextColor3 = isSalaryBoost and Color3.fromRGB(100, 255, 100) or Color3.fromRGB(255, 100, 100)
-    end)
-
-    createButton("🛡️ Anti-Kick Mass Ban", 209, Color3.fromRGB(200, 50, 200), function()
-        antiKickMassBan()
-        Status.Text = isAntiKick and "🛡️ Mass Ban ON" or "🛡️ Mass Ban OFF"
-        Status.TextColor3 = isAntiKick and Color3.fromRGB(255, 200, 0) or Color3.fromRGB(255, 100, 100)
-    end)
-
-    createButton("🔥 All Features ON", 257, Color3.fromRGB(200, 0, 200), function()
-        if not isAutoCash then autoCash() end
-        if not isFreePurchase then freePurchase() end
-        if not isSalaryBoost then salaryBoost() end
-        if not isAntiKick then antiKickMassBan() end
-        Status.Text = "🔥 ALL FEATURES ON"
-        Status.TextColor3 = Color3.fromRGB(255, 215, 0)
-    end)
-
-    createButton("⏹ Stop All", 305, Color3.fromRGB(200, 50, 50), function()
-        isAutoCash = false
-        isFreePurchase = false
-        isSalaryBoost = false
-        isAntiKick = false
-        Status.Text = "⏹ All Stopped"
-        Status.TextColor3 = Color3.fromRGB(255, 100, 100)
-        print("[Glarity] All features stopped")
-    end)
-
-    createButton("❌ Close Menu", 353, Color3.fromRGB(120, 30, 30), function()
+    if ScreenGui then
         ScreenGui:Destroy()
-    end)
+        ScreenGui = nil
+        menuVisible = false
+        return
+    end
+    
+    local success, err = pcall(function()
+        ScreenGui = Instance.new("ScreenGui")
+        ScreenGui.Name = "GlarityReborn"
+        ScreenGui.ResetOnSpawn = false
+        ScreenGui.IgnoreGuiInset = true
+        ScreenGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
+        ScreenGui.DisplayOrder = 999
+        ScreenGui.Parent = CoreGui
+        
+        -- If CoreGui fails, try PlayerGui
+        if not ScreenGui.Parent then
+            ScreenGui.Parent = Player:WaitForChild("PlayerGui")
+        end
+        
+        -- Main Frame
+        local MainFrame = Instance.new("Frame")
+        MainFrame.Size = UDim2.new(0, 350, 0, 440)
+        MainFrame.Position = UDim2.new(0.5, -175, 0.5, -220)
+        MainFrame.BackgroundColor3 = Color3.fromRGB(10, 10, 30)
+        MainFrame.BackgroundTransparency = 0.1
+        MainFrame.BorderSizePixel = 0
+        MainFrame.ClipsDescendants = true
+        MainFrame.Parent = ScreenGui
 
-    -- Drag
-    local dragToggle = false
-    local dragStart
-    local dragStartPos
-    MainFrame.InputBegan:Connect(function(input)
-        if input.UserInputType == Enum.UserInputType.MouseButton1 then
-            dragToggle = true
-            dragStart = input.Position
-            dragStartPos = MainFrame.Position
-        end
-    end)
-    MainFrame.InputEnded:Connect(function(input)
-        if input.UserInputType == Enum.UserInputType.MouseButton1 then
-            dragToggle = false
-        end
-    end)
-    UserInputService.InputChanged:Connect(function(input)
-        if dragToggle and input.UserInputType == Enum.UserInputType.MouseMovement then
-            local delta = input.Position - dragStart
-            MainFrame.Position = UDim2.new(
-                dragStartPos.X.Scale,
-                dragStartPos.X.Offset + delta.X,
-                dragStartPos.Y.Scale,
-                dragStartPos.Y.Offset + delta.Y
-            )
-        end
-    end)
+        local Corner = Instance.new("UICorner")
+        Corner.CornerRadius = UDim.new(0, 16)
+        Corner.Parent = MainFrame
 
-    return ScreenGui
+        -- Title
+        local Title = Instance.new("TextLabel")
+        Title.Size = UDim2.new(1, 0, 0, 50)
+        Title.Position = UDim2.new(0, 0, 0, 0)
+        Title.BackgroundTransparency = 1
+        Title.Text = "GLARITY REBORN"
+        Title.TextColor3 = Color3.fromRGB(255, 215, 0)
+        Title.TextScaled = true
+        Title.Font = Enum.Font.GothamBold
+        Title.Parent = MainFrame
+
+        local SubTitle = Instance.new("TextLabel")
+        SubTitle.Size = UDim2.new(1, 0, 0, 25)
+        SubTitle.Position = UDim2.new(0, 0, 0, 45)
+        SubTitle.BackgroundTransparency = 1
+        SubTitle.Text = "🇮🇩 INDONESIA EDITION 🇮🇩"
+        SubTitle.TextColor3 = Color3.fromRGB(255, 255, 255)
+        SubTitle.TextScaled = true
+        SubTitle.Font = Enum.Font.GothamMedium
+        SubTitle.Parent = MainFrame
+
+        local function createButton(text, y, color, callback)
+            local btn = Instance.new("TextButton")
+            btn.Size = UDim2.new(0.85, 0, 0, 38)
+            btn.Position = UDim2.new(0.075, 0, 0, y)
+            btn.BackgroundColor3 = color or Color3.fromRGB(40, 40, 80)
+            btn.BackgroundTransparency = 0.2
+            btn.Text = text
+            btn.TextColor3 = Color3.fromRGB(255, 255, 255)
+            btn.Font = Enum.Font.GothamMedium
+            btn.TextSize = 14
+            btn.Parent = MainFrame
+            
+            local btnCorner = Instance.new("UICorner")
+            btnCorner.CornerRadius = UDim.new(0, 10)
+            btnCorner.Parent = btn
+            
+            btn.MouseButton1Click:Connect(callback)
+            
+            btn.MouseEnter:Connect(function()
+                btn.BackgroundTransparency = 0.05
+                btn.BackgroundColor3 = color and color:Lerp(Color3.fromRGB(255, 255, 255), 0.1) or Color3.fromRGB(60, 60, 100)
+            end)
+            btn.MouseLeave:Connect(function()
+                btn.BackgroundTransparency = 0.2
+                btn.BackgroundColor3 = color or Color3.fromRGB(40, 40, 80)
+            end)
+            
+            return btn
+        end
+
+        -- Status label
+        local Status = Instance.new("TextLabel")
+        Status.Size = UDim2.new(0.9, 0, 0, 30)
+        Status.Position = UDim2.new(0.05, 0, 0, 395)
+        Status.BackgroundTransparency = 1
+        Status.Text = "⚡ Ready"
+        Status.TextColor3 = Color3.fromRGB(100, 255, 100)
+        Status.TextScaled = true
+        Status.Font = Enum.Font.GothamMedium
+        Status.Parent = MainFrame
+
+        -- Buttons
+        createButton("💰 Auto Cash 22M", 65, Color3.fromRGB(0, 150, 50), function()
+            autoCash()
+            Status.Text = isAutoCash and "💰 Auto Cash ON" or "💰 Auto Cash OFF"
+            Status.TextColor3 = isAutoCash and Color3.fromRGB(100, 255, 100) or Color3.fromRGB(255, 100, 100)
+        end)
+
+        createButton("🛒 Free Robux Items", 113, Color3.fromRGB(150, 100, 0), function()
+            freePurchase()
+            Status.Text = isFreePurchase and "🛒 Free Items ON" or "🛒 Free Items OFF"
+            Status.TextColor3 = isFreePurchase and Color3.fromRGB(100, 255, 100) or Color3.fromRGB(255, 100, 100)
+        end)
+
+        createButton("⭐ Salary 5×", 161, Color3.fromRGB(0, 100, 200), function()
+            salaryBoost()
+            Status.Text = isSalaryBoost and "⭐ Salary 5× ON" or "⭐ Salary 5× OFF"
+            Status.TextColor3 = isSalaryBoost and Color3.fromRGB(100, 255, 100) or Color3.fromRGB(255, 100, 100)
+        end)
+
+        createButton("🛡️ Anti-Kick Mass Ban", 209, Color3.fromRGB(200, 50, 200), function()
+            antiKickMassBan()
+            Status.Text = isAntiKick and "🛡️ Mass Ban ON" or "🛡️ Mass Ban OFF"
+            Status.TextColor3 = isAntiKick and Color3.fromRGB(255, 200, 0) or Color3.fromRGB(255, 100, 100)
+        end)
+
+        createButton("🔥 All Features ON", 257, Color3.fromRGB(200, 0, 200), function()
+            if not isAutoCash then autoCash() end
+            if not isFreePurchase then freePurchase() end
+            if not isSalaryBoost then salaryBoost() end
+            if not isAntiKick then antiKickMassBan() end
+            Status.Text = "🔥 ALL FEATURES ON"
+            Status.TextColor3 = Color3.fromRGB(255, 215, 0)
+        end)
+
+        createButton("⏹ Stop All", 305, Color3.fromRGB(200, 50, 50), function()
+            isAutoCash = false
+            isFreePurchase = false
+            isSalaryBoost = false
+            isAntiKick = false
+            Status.Text = "⏹ All Stopped"
+            Status.TextColor3 = Color3.fromRGB(255, 100, 100)
+            print("[Glarity] All features stopped")
+        end)
+
+        createButton("❌ Close Menu", 353, Color3.fromRGB(120, 30, 30), function()
+            if ScreenGui then
+                ScreenGui:Destroy()
+                ScreenGui = nil
+                menuVisible = false
+            end
+        end)
+
+        -- Drag
+        local dragToggle = false
+        local dragStart, dragStartPos
+        MainFrame.InputBegan:Connect(function(input)
+            if input.UserInputType == Enum.UserInputType.MouseButton1 then
+                dragToggle = true
+                dragStart = input.Position
+                dragStartPos = MainFrame.Position
+            end
+        end)
+        MainFrame.InputEnded:Connect(function(input)
+            if input.UserInputType == Enum.UserInputType.MouseButton1 then
+                dragToggle = false
+            end
+        end)
+        UserInputService.InputChanged:Connect(function(input)
+            if dragToggle and input.UserInputType == Enum.UserInputType.MouseMovement then
+                local delta = input.Position - dragStart
+                MainFrame.Position = UDim2.new(
+                    dragStartPos.X.Scale,
+                    dragStartPos.X.Offset + delta.X,
+                    dragStartPos.Y.Scale,
+                    dragStartPos.Y.Offset + delta.Y
+                )
+            end
+        end)
+        
+        menuVisible = true
+        print("[Glarity] Menu created successfully")
+    end)
+    
+    if not success then
+        warn("[Glarity] Failed to create UI: " .. tostring(err))
+        -- Try fallback: print to console
+        print("[Glarity] Menu could not be created. Use F7 to toggle visibility.")
+    end
+end
+
+-- ─── TOGGLE MENU VISIBILITY (F7) ──────────────────────────────────────
+local function toggleMenu()
+    if ScreenGui then
+        ScreenGui.Enabled = not ScreenGui.Enabled
+        print("[Glarity] Menu visibility toggled")
+    else
+        createUI()
+    end
 end
 
 -- ─── KEYBINDS ──────────────────────────────────────────────────────────
@@ -456,30 +486,34 @@ UserInputService.InputBegan:Connect(function(input, gameProcessed)
         isAntiKick = false
         print("[Glarity] F6: All features OFF")
     end
+    if input.KeyCode == Enum.KeyCode.F7 then
+        toggleMenu()
+        print("[Glarity] F7: Toggle Menu")
+    end
 end)
 
 -- ─── STARTUP ────────────────────────────────────────────────────────────
 task.wait(1)
-local gui = createUI()
+createUI()
+
+-- Also try to create menu after a short delay in case the first attempt failed
+task.delay(2, function()
+    if not ScreenGui then
+        createUI()
+    end
+end)
 
 print("")
 print("═══════════════════════════════════")
 print("  GLARITY REBORN INDONESIA")
-print("  ULTIMATE EDITION")
+print("  ULTIMATE EDITION - FIXED")
 print("═══════════════════════════════════")
-print("✅ Menu Created")
+print("✅ Menu Created (Press F7 to toggle)")
 print("💰 Auto Cash 22M (F1)")
 print("🛒 Free Robux Items (F2)")
 print("⭐ Salary 5× (F3)")
 print("🛡️ Anti-Kick Mass Ban (F4)")
 print("🔥 All Features ON (F5)")
 print("⏹ Stop All (F6)")
-print("")
-print("📌 Keybinds:")
-print("   F1 - Toggle Auto Cash")
-print("   F2 - Toggle Free Purchase")
-print("   F3 - Toggle Salary 5×")
-print("   F4 - Toggle Anti-Kick Mass Ban")
-print("   F5 - All Features ON")
-print("   F6 - Stop All")
+print("📌 Toggle Menu (F7)")
 print("═══════════════════════════════════")
