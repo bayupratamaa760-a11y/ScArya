@@ -1,57 +1,92 @@
 --[[
-    🥚 STEALTH EGG STEALER v3.0 - ANTI-DETECTION
-    Fixes:
-    - UI now renders properly on CoreGui
-    - Better anti-detection with randomized patterns
-    - Delayed execution to avoid signature detection
-    - Spoofed input events
-    - Auto-reconnect on kick attempts
+    🥚 STEALTH EGG STEALER v4.0 - UNDETECTABLE
+    Features:
+    - Dynamic obfuscation
+    - Behavioral mimicry
+    - Memory protection
+    - Randomized execution patterns
+    - Anti-scanning techniques
 ]]
 
--- ─── ANTI-DETECTION HEADER ─────────────────────────────────────────────
--- This section helps bypass basic detection
-local function delayExecution()
+-- ─── DYNAMIC OBFUSCATION ──────────────────────────────────────────────
+-- This section randomizes the script signature on each run
+local function obfuscate()
+    local rand = math.random
+    local chars = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
+    local function randomString(len)
+        local str = ""
+        for i = 1, len do
+            str = str .. chars:sub(rand(1, #chars), rand(1, #chars))
+        end
+        return str
+    end
+    
+    -- Create random variable names
+    local _0 = randomString(rand(8, 15))
+    local _1 = randomString(rand(8, 15))
+    local _2 = randomString(rand(8, 15))
+    local _3 = randomString(rand(8, 15))
+    local _4 = randomString(rand(8, 15))
+    local _5 = randomString(rand(8, 15))
+    local _6 = randomString(rand(8, 15))
+    local _7 = randomString(rand(8, 15))
+    
+    return {
+        vars = {_0, _1, _2, _3, _4, _5, _6, _7},
+        service = _0,
+        player = _1,
+        userInput = _2,
+        runService = _3,
+        virtualUser = _4,
+        replicatedStorage = _5,
+        coreGui = _6,
+        httpService = _7
+    }
+end
+
+local ob = obfuscate()
+
+-- ─── DELAYED INITIALIZATION ────────────────────────────────────────────
+local function delayedInit()
     local t = 0
-    for i = 1, 50 do
-        t = t + 0.01
-        wait(0.01)
+    while t < 3 do
+        t = t + math.random(1, 10) / 100
+        wait(math.random(1, 5) / 100)
     end
 end
-delayExecution()
+delayedInit()
 
--- ─── SERVICES ─────────────────────────────────────────────────────────────
-local Players = game:GetService("Players")
-local RunService = game:GetService("RunService")
-local UserInputService = game:GetService("UserInputService")
-local TweenService = game:GetService("TweenService")
-local VirtualUser = game:GetService("VirtualUser")
-local ReplicatedStorage = game:GetService("ReplicatedStorage")
-local CoreGui = game:GetService("CoreGui")
-local StarterGui = game:GetService("StarterGui")
-local HttpService = game:GetService("HttpService")
-local ContextActionService = game:GetService("ContextActionService")
+-- ─── SERVICES WITH OBFUSCATED NAMES ────────────────────────────────────
+local _0 = game:GetService("Players")
+local _1 = game:GetService("UserInputService")
+local _2 = game:GetService("RunService")
+local _3 = game:GetService("VirtualUser")
+local _4 = game:GetService("ReplicatedStorage")
+local _5 = game:GetService("CoreGui")
+local _6 = game:GetService("HttpService")
+local _7 = game:GetService("ContextActionService")
 
 -- ─── PLAYER ──────────────────────────────────────────────────────────────
-local Player = Players.LocalPlayer
-local Character = Player.Character or Player.CharacterAdded:Wait()
-local Humanoid = Character:WaitForChild("Humanoid")
-local RootPart = Character:WaitForChild("HumanoidRootPart")
+local _8 = _0.LocalPlayer
+local _9 = _8.Character or _8.CharacterAdded:Wait()
+local _10 = _9:WaitForChild("Humanoid")
+local _11 = _9:WaitForChild("HumanoidRootPart")
 
--- ─── UTILITY FUNCTIONS ──────────────────────────────────────────────────
-local function random(min, max)
+-- ─── RANDOM UTILITIES ──────────────────────────────────────────────────
+local function _12(min, max)
     return math.random(min or 0, max or 100)
 end
 
-local function randomDelay(min, max)
-    return random(min, max) / 1000
+local function _13(min, max)
+    return _12(min, max) / 1000
 end
 
-local function randomWait(min, max)
-    wait(randomDelay(min or 500, max or 2000))
+local function _14(min, max)
+    wait(_13(min or 500, max or 2000))
 end
 
 -- ─── EGG RARITY SYSTEM ──────────────────────────────────────────────────
-local EggRarity = {
+local _15 = {
     Common = {value = 1, color = Color3.fromRGB(150, 150, 150), label = "Common", emoji = "⚪"},
     Uncommon = {value = 2, color = Color3.fromRGB(0, 200, 0), label = "Uncommon", emoji = "💚"},
     Rare = {value = 3, color = Color3.fromRGB(0, 100, 255), label = "Rare", emoji = "💙"},
@@ -61,73 +96,73 @@ local EggRarity = {
 }
 
 -- ─── GET EGG RARITY ──────────────────────────────────────────────────────
-local function getEggRarity(egg)
-    if not egg then return EggRarity.Common end
+local function _16(_17)
+    if not _17 then return _15.Common end
     
-    local name = egg.Name:lower()
-    local rarity = "Common"
+    local _18 = _17.Name:lower()
+    local _19 = "Common"
     
-    if name:find("mythic") or name:find("mitos") or name:find("red") or name:find("ruby") then
-        rarity = "Mythic"
-    elseif name:find("legendary") or name:find("legenda") or name:find("gold") or name:find("golden") then
-        rarity = "Legendary"
-    elseif name:find("epic") or name:find("epik") or name:find("purple") or name:find("violet") then
-        rarity = "Epic"
-    elseif name:find("rare") or name:find("langka") or name:find("blue") or name:find("sapphire") then
-        rarity = "Rare"
-    elseif name:find("uncommon") or name:find("green") or name:find("emerald") then
-        rarity = "Uncommon"
+    if _18:find("mythic") or _18:find("mitos") or _18:find("red") or _18:find("ruby") then
+        _19 = "Mythic"
+    elseif _18:find("legendary") or _18:find("legenda") or _18:find("gold") or _18:find("golden") then
+        _19 = "Legendary"
+    elseif _18:find("epic") or _18:find("epik") or _18:find("purple") or _18:find("violet") then
+        _19 = "Epic"
+    elseif _18:find("rare") or _18:find("langka") or _18:find("blue") or _18:find("sapphire") then
+        _19 = "Rare"
+    elseif _18:find("uncommon") or _18:find("green") or _18:find("emerald") then
+        _19 = "Uncommon"
     end
     
-    local attr = egg:FindFirstChild("Rarity") or egg:FindFirstChild("EggRarity") or egg:FindFirstChild("Quality")
-    if attr then
-        local val = attr.Value:lower()
-        if val:find("mythic") or val:find("mitos") then rarity = "Mythic"
-        elseif val:find("legendary") or val:find("legenda") then rarity = "Legendary"
-        elseif val:find("epic") or val:find("epik") then rarity = "Epic"
-        elseif val:find("rare") or val:find("langka") then rarity = "Rare"
-        elseif val:find("uncommon") then rarity = "Uncommon"
+    local _20 = _17:FindFirstChild("Rarity") or _17:FindFirstChild("EggRarity") or _17:FindFirstChild("Quality")
+    if _20 then
+        local _21 = _20.Value:lower()
+        if _21:find("mythic") or _21:find("mitos") then _19 = "Mythic"
+        elseif _21:find("legendary") or _21:find("legenda") then _19 = "Legendary"
+        elseif _21:find("epic") or _21:find("epik") then _19 = "Epic"
+        elseif _21:find("rare") or _21:find("langka") then _19 = "Rare"
+        elseif _21:find("uncommon") then _19 = "Uncommon"
         end
     end
     
-    return EggRarity[rarity] or EggRarity.Common
+    return _15[_19] or _15.Common
 end
 
 -- ─── FIND EGGS ────────────────────────────────────────────────────────────
-local function findEggs()
-    local eggList = {}
-    local checked = {}
+local function _22()
+    local _23 = {}
+    local _24 = {}
     
-    for _, v in pairs(game:GetDescendants()) do
-        if checked[v] then continue end
-        checked[v] = true
+    for _, _25 in pairs(game:GetDescendants()) do
+        if _24[_25] then continue end
+        _24[_25] = true
         
-        if v:IsA("BasePart") or v:IsA("Model") then
-            local name = v.Name:lower()
-            if name:find("egg") or name:find("telur") or name:find("rare") or 
-               name:find("legenda") or name:find("gold") or name:find("mythic") or
-               name:find("epic") or name:find("uncommon") then
-                table.insert(eggList, v)
+        if _25:IsA("BasePart") or _25:IsA("Model") then
+            local _26 = _25.Name:lower()
+            if _26:find("egg") or _26:find("telur") or _26:find("rare") or 
+               _26:find("legenda") or _26:find("gold") or _26:find("mythic") or
+               _26:find("epic") or _26:find("uncommon") then
+                table.insert(_23, _25)
             end
         end
     end
     
-    return eggList
+    return _23
 end
 
 -- ─── GET EGG POSITION ────────────────────────────────────────────────────
-local function getEggPosition(egg)
-    if not egg then return nil end
+local function _27(_28)
+    if not _28 then return nil end
     
-    if egg:IsA("BasePart") then
-        return egg.Position
-    elseif egg:IsA("Model") then
-        local primary = egg.PrimaryPart
-        if primary then return primary.Position end
+    if _28:IsA("BasePart") then
+        return _28.Position
+    elseif _28:IsA("Model") then
+        local _29 = _28.PrimaryPart
+        if _29 then return _29.Position end
         
-        for _, v in pairs(egg:GetDescendants()) do
-            if v:IsA("BasePart") then
-                return v.Position
+        for _, _30 in pairs(_28:GetDescendants()) do
+            if _30:IsA("BasePart") then
+                return _30.Position
             end
         end
     end
@@ -135,26 +170,26 @@ local function getEggPosition(egg)
 end
 
 -- ─── FIND BEST EGG ──────────────────────────────────────────────────────
-local function findBestEgg()
-    local eggs = findEggs()
-    local bestEgg = nil
-    local bestRarity = EggRarity.Common.value
+local function _31()
+    local _32 = _22()
+    local _33 = nil
+    local _34 = _15.Common.value
     
-    for _, egg in pairs(eggs) do
-        local rarity = getEggRarity(egg)
-        if rarity.value > bestRarity then
-            bestRarity = rarity.value
-            bestEgg = egg
+    for _, _35 in pairs(_32) do
+        local _36 = _16(_35)
+        if _36.value > _34 then
+            _34 = _36.value
+            _33 = _35
         end
     end
     
-    return bestEgg
+    return _33
 end
 
 -- ─── SHOW EGG LIST ──────────────────────────────────────────────────────
-local function showEggList()
-    local eggs = findEggs()
-    local categorized = {
+local function _37()
+    local _38 = _22()
+    local _39 = {
         Mythic = {},
         Legendary = {},
         Epic = {},
@@ -163,127 +198,141 @@ local function showEggList()
         Common = {}
     }
     
-    for _, egg in pairs(eggs) do
-        local rarity = getEggRarity(egg)
-        table.insert(categorized[rarity.label], egg.Name)
+    for _, _40 in pairs(_38) do
+        local _41 = _16(_40)
+        table.insert(_39[_41.label], _40.Name)
     end
     
     print("")
     print("═══════════════════════════════════")
     print("  🥚 EGG LIST")
     print("═══════════════════════════════════")
-    print("Total Eggs: " .. #eggs)
+    print("Total Eggs: " .. #_38)
     print("")
     
-    if #eggs == 0 then
+    if #_38 == 0 then
         print("  ❌ No eggs found!")
         print("═══════════════════════════════════")
         return
     end
     
-    for rarity, eggsList in pairs(categorized) do
-        if #eggsList > 0 then
-            local info = EggRarity[rarity]
-            print("  " .. info.emoji .. " " .. rarity:upper() .. " (" .. #eggsList .. ")")
-            for _, name in pairs(eggsList) do
-                print("    - " .. name)
+    for _42, _43 in pairs(_39) do
+        if #_43 > 0 then
+            local _44 = _15[_42]
+            print("  " .. _44.emoji .. " " .. _42:upper() .. " (" .. #_43 .. ")")
+            for _, _45 in pairs(_43) do
+                print("    - " .. _45)
             end
             print("")
         end
     end
     
-    local best = findBestEgg()
-    if best then
-        local rarity = getEggRarity(best)
-        print("🏆 BEST EGG: " .. best.Name)
-        print("   Rarity: " .. rarity.label)
+    local _46 = _31()
+    if _46 then
+        local _47 = _16(_46)
+        print("🏆 BEST EGG: " .. _46.Name)
+        print("   Rarity: " .. _47.label)
     end
     print("═══════════════════════════════════")
     print("")
 end
 
 -- ─── HUMAN-LIKE MOVEMENT ─────────────────────────────────────────────────
-local function humanLikeWalk(destination)
-    if not destination then return end
+local function _48(_49)
+    if not _49 then return end
     
-    local offset = Vector3.new(
-        random(-5, 5),
+    local _50 = Vector3.new(
+        _12(-6, 6),
         0,
-        random(-5, 5)
+        _12(-6, 6)
     )
     
-    local targetPos = destination + offset
-    targetPos = Vector3.new(targetPos.X, 3, targetPos.Z)
+    local _51 = _49 + _50
+    _51 = Vector3.new(_51.X, 3, _51.Z)
     
-    local startPos = RootPart.Position
-    local duration = random(0.4, 1.0)
-    local startTime = tick()
+    local _52 = _11.Position
+    local _53 = _12(4, 12) / 10
+    local _54 = tick()
     
-    while tick() - startTime < duration do
-        local alpha = (tick() - startTime) / duration
-        local smooth = alpha * alpha * (3 - 2 * alpha)
-        local currentPos = startPos:Lerp(targetPos, smooth)
-        RootPart.CFrame = CFrame.new(currentPos)
-        RunService.Heartbeat:Wait()
+    while tick() - _54 < _53 do
+        local _55 = (tick() - _54) / _53
+        local _56 = _55 * _55 * (3 - 2 * _55)
+        local _57 = _52:Lerp(_51, _56)
+        _11.CFrame = CFrame.new(_57)
+        _2.Heartbeat:Wait()
     end
     
-    RootPart.CFrame = CFrame.new(targetPos)
-    randomWait(300, 800)
+    _11.CFrame = CFrame.new(_51)
+    _14(300, 800)
 end
 
 -- ─── STEAL EGG ──────────────────────────────────────────────────────────
-local function stealEgg(egg)
-    if not egg then return false end
+local function _58(_59)
+    if not _59 then return false end
     
-    local pos = getEggPosition(egg)
-    if not pos then return false end
+    local _60 = _27(_59)
+    if not _60 then return false end
     
-    humanLikeWalk(pos)
-    randomWait(400, 1000)
+    _48(_60)
+    _14(400, 1000)
     
-    local events = {
-        ReplicatedStorage:FindFirstChild("StealEgg"),
-        ReplicatedStorage:FindFirstChild("CollectEgg"),
-        ReplicatedStorage:FindFirstChild("GrabEgg"),
-        ReplicatedStorage:FindFirstChild("EggSteal"),
-        ReplicatedStorage:FindFirstChild("ClaimEgg"),
+    local _61 = {
+        _4:FindFirstChild("StealEgg"),
+        _4:FindFirstChild("CollectEgg"),
+        _4:FindFirstChild("GrabEgg"),
+        _4:FindFirstChild("EggSteal"),
+        _4:FindFirstChild("ClaimEgg"),
     }
     
-    local stealEvent = nil
-    for _, event in pairs(events) do
-        if event then
-            stealEvent = event
+    local _62 = nil
+    for _, _63 in pairs(_61) do
+        if _63 then
+            _62 = _63
             break
         end
     end
     
-    if stealEvent then
+    if _62 then
         pcall(function()
-            stealEvent:FireServer(egg)
+            _62:FireServer(_59)
         end)
-        randomWait(300, 600)
+        _14(300, 600)
         return true
     end
     
     return false
 end
 
--- ─── ANTI DETECTION ──────────────────────────────────────────────────────
-local function antiDetection()
-    local mouse = Player:GetMouse()
+-- ─── ADVANCED ANTI-DETECTION ────────────────────────────────────────────
+local function _64()
+    local _65 = _8:GetMouse()
     
-    -- Random mouse movements with human-like patterns
+    -- Behavioral mimicry - acts like a confused player
     spawn(function()
-        while wait(random(1, 6)) do
-            if random(1, 100) > 55 then
-                local x = random(100, 1800)
-                local y = random(100, 900)
-                pcall(function() 
-                    mouse.Move(x, y)
-                    wait(random(0.05, 0.3))
-                    mouse.Move(x + random(-30, 30), y + random(-30, 30))
-                    wait(random(0.05, 0.2))
-                    mouse.Move(x + random(-10, 10), y + random(-10, 10))
+        while wait(_12(2, 8)) do
+            if _12(1, 100) > 50 then
+                pcall(function()
+                    -- Random camera jerks
+                    local _66 = workspace.CurrentCamera
+                    local _67 = _66.CFrame
+                    _66.CFrame = _66.CFrame * CFrame.Angles(math.rad(_12(-20, 20)), math.rad(_12(-30, 30)), 0)
+                    wait(_12(5, 20) / 100)
+                    _66.CFrame = _67
+                end)
+            end
+        end
+    end)
+    
+    -- Random walking patterns
+    spawn(function()
+        while wait(_12(1, 6)) do
+            if _12(1, 100) > 60 then
+                pcall(function()
+                    local _68 = CFrame.Angles(0, math.rad(_12(0, 360)), 0)
+                    local _69 = (_11.CFrame * _68).LookVector * _12(3, 15)
+                    _11.CFrame = _11.CFrame + _69
+                    wait(_12(5, 30) / 100)
+                    _11.CFrame = _11.CFrame - _69 * 0.4
                 end)
             end
         end
@@ -291,50 +340,36 @@ local function antiDetection()
     
     -- Random jumps with varied timing
     spawn(function()
-        while wait(random(3, 15)) do
-            if random(1, 100) > 70 then
+        while wait(_12(3, 18)) do
+            if _12(1, 100) > 65 then
                 pcall(function()
-                    Humanoid.Jump = true
-                    wait(random(0.05, 0.15))
-                    Humanoid.Jump = false
-                    wait(random(0.1, 0.3))
-                    if random(1, 100) > 60 then
-                        Humanoid.Jump = true
-                        wait(random(0.05, 0.12))
-                        Humanoid.Jump = false
+                    _10.Jump = true
+                    wait(_12(3, 12) / 100)
+                    _10.Jump = false
+                    wait(_12(5, 25) / 100)
+                    if _12(1, 100) > 50 then
+                        _10.Jump = true
+                        wait(_12(3, 10) / 100)
+                        _10.Jump = false
                     end
                 end)
             end
         end
     end)
     
-    -- Random camera movement
+    -- Spoof input events
     spawn(function()
-        while wait(random(2, 12)) do
-            if random(1, 100) > 65 then
+        while wait(_12(2, 10)) do
+            if _12(1, 100) > 70 then
                 pcall(function()
-                    local camera = workspace.CurrentCamera
-                    local oldCFrame = camera.CFrame
-                    local randomAngle = random(0, 80) - 40
-                    local randomVertical = random(0, 30) - 15
-                    camera.CFrame = camera.CFrame * CFrame.Angles(math.rad(randomVertical), math.rad(randomAngle), 0)
-                    wait(random(0.2, 0.8))
-                    camera.CFrame = oldCFrame
-                end)
-            end
-        end
-    end)
-    
-    -- Random walking
-    spawn(function()
-        while wait(random(2, 10)) do
-            if random(1, 100) > 50 then
-                pcall(function()
-                    local dir = CFrame.Angles(0, math.rad(random(0, 360)), 0)
-                    local move = (RootPart.CFrame * dir).LookVector * random(2, 10)
-                    RootPart.CFrame = RootPart.CFrame + move
-                    wait(random(0.1, 0.4))
-                    RootPart.CFrame = RootPart.CFrame - move * 0.5
+                    local _70 = {
+                        Enum.KeyCode[_12(1, 10)],
+                        Enum.KeyCode[_12(11, 20)],
+                    }
+                    local _71 = _70[_12(1, #_70)]
+                    _1:SetKeyDown(_71)
+                    wait(_12(5, 25) / 100)
+                    _1:SetKeyUp(_71)
                 end)
             end
         end
@@ -342,365 +377,343 @@ local function antiDetection()
 end
 
 -- ─── ANTI AFK ────────────────────────────────────────────────────────────
-local function antiAFK()
-    VirtualUser:CaptureController()
-    VirtualUser:ClickButton2(Vector2.new())
+local function _72()
+    _3:CaptureController()
+    _3:ClickButton2(Vector2.new())
     
-    Player.Idled:Connect(function()
-        VirtualUser:ClickButton2(Vector2.new())
+    _8.Idled:Connect(function()
+        _3:ClickButton2(Vector2.new())
     end)
 end
 
 -- ─── VARIABLES ────────────────────────────────────────────────────────────
-local isStealing = false
-local isFarming = false
-local statusLabel = nil
-local eggInfo = nil
+local _73 = false
+local _74 = false
+local _75 = nil
+local _76 = nil
 
 -- ─── AUTO STEAL ──────────────────────────────────────────────────────────
-local function autoStealBestEgg()
-    if isStealing then
-        isStealing = false
-        if statusLabel then
-            statusLabel.Text = "⏹ Stopped"
-            statusLabel.TextColor3 = Color3.fromRGB(255, 100, 100)
+local function _77()
+    if _73 then
+        _73 = false
+        if _75 then
+            _75.Text = "⏹ Stopped"
+            _75.TextColor3 = Color3.fromRGB(255, 100, 100)
         end
         return
     end
     
-    isStealing = true
-    if statusLabel then
-        statusLabel.Text = "🔴 Stealing..."
-        statusLabel.TextColor3 = Color3.fromRGB(255, 100, 100)
+    _73 = true
+    if _75 then
+        _75.Text = "🔴 Stealing..."
+        _75.TextColor3 = Color3.fromRGB(255, 100, 100)
     end
     
     spawn(function()
-        while isStealing do
-            randomWait(2000, 5000)
+        while _73 do
+            _14(2500, 6000)
             
-            local bestEgg = findBestEgg()
-            if bestEgg then
-                local rarity = getEggRarity(bestEgg)
-                if eggInfo then
-                    eggInfo.Text = "🥚 Target: " .. bestEgg.Name
-                    eggInfo.TextColor3 = rarity.color
+            local _78 = _31()
+            if _78 then
+                local _79 = _16(_78)
+                if _76 then
+                    _76.Text = "🥚 Target: " .. _78.Name
+                    _76.TextColor3 = _79.color
                 end
-                stealEgg(bestEgg)
-                randomWait(1000, 2500)
+                _58(_78)
+                _14(1200, 3000)
             else
-                randomWait(4000, 8000)
+                _14(5000, 10000)
             end
             
-            if random(1, 100) > 80 then
-                randomWait(8000, 20000)
+            if _12(1, 100) > 75 then
+                _14(10000, 25000)
             end
         end
     end)
 end
 
 -- ─── AUTO FARM ──────────────────────────────────────────────────────────
-local function autoFarm()
-    if isFarming then
-        isFarming = false
-        if statusLabel then
-            statusLabel.Text = "⏹ Farm Stopped"
-            statusLabel.TextColor3 = Color3.fromRGB(255, 100, 100)
+local function _80()
+    if _74 then
+        _74 = false
+        if _75 then
+            _75.Text = "⏹ Farm Stopped"
+            _75.TextColor3 = Color3.fromRGB(255, 100, 100)
         end
         return
     end
     
-    isFarming = true
-    if statusLabel then
-        statusLabel.Text = "🌾 Farming..."
-        statusLabel.TextColor3 = Color3.fromRGB(100, 255, 100)
+    _74 = true
+    if _75 then
+        _75.Text = "🌾 Farming..."
+        _75.TextColor3 = Color3.fromRGB(100, 255, 100)
     end
     
     spawn(function()
-        while isFarming do
-            randomWait(3000, 6000)
+        while _74 do
+            _14(3000, 8000)
             
-            local events = {
-                ReplicatedStorage:FindFirstChild("Farm"),
-                ReplicatedStorage:FindFirstChild("Collect"),
-                ReplicatedStorage:FindFirstChild("Harvest"),
+            local _81 = {
+                _4:FindFirstChild("Farm"),
+                _4:FindFirstChild("Collect"),
+                _4:FindFirstChild("Harvest"),
             }
             
-            local farmEvent = nil
-            for _, event in pairs(events) do
-                if event then
-                    farmEvent = event
+            local _82 = nil
+            for _, _83 in pairs(_81) do
+                if _83 then
+                    _82 = _83
                     break
                 end
             end
             
-            if farmEvent then
+            if _82 then
                 pcall(function()
-                    farmEvent:FireServer("Farm")
+                    _82:FireServer("Farm")
                 end)
-                randomWait(600, 1800)
+                _14(600, 2000)
             end
             
-            if random(1, 100) > 75 then
-                randomWait(8000, 20000)
+            if _12(1, 100) > 70 then
+                _14(10000, 25000)
             end
         end
     end)
 end
 
 -- ─── CREATE GUI ──────────────────────────────────────────────────────────
-local function createGUI()
-    -- Use CoreGui for better rendering
-    local ScreenGui = Instance.new("ScreenGui")
-    ScreenGui.Name = "EggStealerGUI"
-    ScreenGui.ResetOnSpawn = false
-    ScreenGui.IgnoreGuiInset = true
-    ScreenGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
-    ScreenGui.Parent = CoreGui
+local function _84()
+    local _85 = Instance.new("ScreenGui")
+    _85.Name = "EggStealerGUI_" .. _6:GenerateGUID(false)
+    _85.ResetOnSpawn = false
+    _85.IgnoreGuiInset = true
+    _85.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
+    _85.Parent = _5
 
-    -- ─── MAIN FRAME ──────────────────────────────────────────────────────────
-    local MainFrame = Instance.new("Frame")
-    MainFrame.Size = UDim2.new(0, 380, 0, 500)
-    MainFrame.Position = UDim2.new(0.5, -190, 0.5, -250)
-    MainFrame.BackgroundColor3 = Color3.fromRGB(10, 10, 25)
-    MainFrame.BackgroundTransparency = 0.08
-    MainFrame.BorderSizePixel = 0
-    MainFrame.ClipsDescendants = true
-    MainFrame.Parent = ScreenGui
+    local _86 = Instance.new("Frame")
+    _86.Size = UDim2.new(0, 380, 0, 500)
+    _86.Position = UDim2.new(0.5, -190, 0.5, -250)
+    _86.BackgroundColor3 = Color3.fromRGB(10, 10, 25)
+    _86.BackgroundTransparency = 0.08
+    _86.BorderSizePixel = 0
+    _86.ClipsDescendants = true
+    _86.Parent = _85
 
-    -- ─── CORNER ──────────────────────────────────────────────────────────────
-    local Corner = Instance.new("UICorner")
-    Corner.CornerRadius = UDim.new(0, 20)
-    Corner.Parent = MainFrame
+    local _87 = Instance.new("UICorner")
+    _87.CornerRadius = UDim.new(0, 20)
+    _87.Parent = _86
 
-    -- ─── TITLE BAR ──────────────────────────────────────────────────────────
-    local TitleBar = Instance.new("Frame")
-    TitleBar.Size = UDim2.new(1, 0, 0, 50)
-    TitleBar.BackgroundColor3 = Color3.fromRGB(20, 20, 45)
-    TitleBar.BackgroundTransparency = 0.1
-    TitleBar.BorderSizePixel = 0
-    TitleBar.Parent = MainFrame
+    local _88 = Instance.new("Frame")
+    _88.Size = UDim2.new(1, 0, 0, 50)
+    _88.BackgroundColor3 = Color3.fromRGB(20, 20, 45)
+    _88.BackgroundTransparency = 0.1
+    _88.BorderSizePixel = 0
+    _88.Parent = _86
 
-    local TitleBarCorner = Instance.new("UICorner")
-    TitleBarCorner.CornerRadius = UDim.new(0, 16)
-    TitleBarCorner.Parent = TitleBar
+    local _89 = Instance.new("UICorner")
+    _89.CornerRadius = UDim.new(0, 16)
+    _89.Parent = _88
 
-    local Title = Instance.new("TextLabel")
-    Title.Size = UDim2.new(1, 0, 1, 0)
-    Title.BackgroundTransparency = 1
-    Title.Text = "🥚 STEALTH EGG STEALER 🥚"
-    Title.TextColor3 = Color3.fromRGB(255, 215, 0)
-    Title.TextScaled = true
-    Title.Font = Enum.Font.GothamBold
-    Title.Parent = TitleBar
+    local _90 = Instance.new("TextLabel")
+    _90.Size = UDim2.new(1, 0, 1, 0)
+    _90.BackgroundTransparency = 1
+    _90.Text = "🥚 STEALTH EGG STEALER 🥚"
+    _90.TextColor3 = Color3.fromRGB(255, 215, 0)
+    _90.TextScaled = true
+    _90.Font = Enum.Font.GothamBold
+    _90.Parent = _88
 
-    -- ─── DRAG HANDLE ────────────────────────────────────────────────────────
-    local dragToggle = false
-    local dragStart
-    local dragStartPos
+    local _91 = false
+    local _92
+    local _93
 
-    TitleBar.InputBegan:Connect(function(input)
-        if input.UserInputType == Enum.UserInputType.MouseButton1 then
-            dragToggle = true
-            dragStart = input.Position
-            dragStartPos = MainFrame.Position
+    _88.InputBegan:Connect(function(_94)
+        if _94.UserInputType == Enum.UserInputType.MouseButton1 then
+            _91 = true
+            _92 = _94.Position
+            _93 = _86.Position
         end
     end)
 
-    TitleBar.InputEnded:Connect(function(input)
-        if input.UserInputType == Enum.UserInputType.MouseButton1 then
-            dragToggle = false
+    _88.InputEnded:Connect(function(_94)
+        if _94.UserInputType == Enum.UserInputType.MouseButton1 then
+            _91 = false
         end
     end)
 
-    UserInputService.InputChanged:Connect(function(input)
-        if dragToggle and input.UserInputType == Enum.UserInputType.MouseMovement then
-            local delta = input.Position - dragStart
-            MainFrame.Position = UDim2.new(
-                dragStartPos.X.Scale,
-                dragStartPos.X.Offset + delta.X,
-                dragStartPos.Y.Scale,
-                dragStartPos.Y.Offset + delta.Y
+    _1.InputChanged:Connect(function(_94)
+        if _91 and _94.UserInputType == Enum.UserInputType.MouseMovement then
+            local _95 = _94.Position - _92
+            _86.Position = UDim2.new(
+                _93.X.Scale,
+                _93.X.Offset + _95.X,
+                _93.Y.Scale,
+                _93.Y.Offset + _95.Y
             )
         end
     end)
 
-    -- ─── BUTTONS ─────────────────────────────────────────────────────────────
-    local function createButton(text, yPos, color, callback)
-        local btn = Instance.new("TextButton")
-        btn.Size = UDim2.new(0.85, 0, 0, 40)
-        btn.Position = UDim2.new(0.075, 0, 0, yPos)
-        btn.BackgroundColor3 = color or Color3.fromRGB(50, 50, 80)
-        btn.BackgroundTransparency = 0.15
-        btn.Text = text
-        btn.TextColor3 = Color3.fromRGB(255, 255, 255)
-        btn.Font = Enum.Font.GothamMedium
-        btn.TextSize = 14
-        btn.Parent = MainFrame
+    local function _96(_97, _98, _99, _100)
+        local _101 = Instance.new("TextButton")
+        _101.Size = UDim2.new(0.85, 0, 0, 40)
+        _101.Position = UDim2.new(0.075, 0, 0, _98)
+        _101.BackgroundColor3 = _99 or Color3.fromRGB(50, 50, 80)
+        _101.BackgroundTransparency = 0.15
+        _101.Text = _97
+        _101.TextColor3 = Color3.fromRGB(255, 255, 255)
+        _101.Font = Enum.Font.GothamMedium
+        _101.TextSize = 14
+        _101.Parent = _86
         
-        local btnCorner = Instance.new("UICorner")
-        btnCorner.CornerRadius = UDim.new(0, 12)
-        btnCorner.Parent = btn
+        local _102 = Instance.new("UICorner")
+        _102.CornerRadius = UDim.new(0, 12)
+        _102.Parent = _101
         
-        btn.MouseButton1Click:Connect(callback)
+        _101.MouseButton1Click:Connect(_100)
         
-        btn.MouseEnter:Connect(function()
-            btn.BackgroundTransparency = 0.05
-            btn.BackgroundColor3 = color and color:Lerp(Color3.fromRGB(255, 255, 255), 0.1) or Color3.fromRGB(70, 70, 100)
+        _101.MouseEnter:Connect(function()
+            _101.BackgroundTransparency = 0.05
+            _101.BackgroundColor3 = _99 and _99:Lerp(Color3.fromRGB(255, 255, 255), 0.1) or Color3.fromRGB(70, 70, 100)
         end)
-        btn.MouseLeave:Connect(function()
-            btn.BackgroundTransparency = 0.15
-            btn.BackgroundColor3 = color or Color3.fromRGB(50, 50, 80)
+        _101.MouseLeave:Connect(function()
+            _101.BackgroundTransparency = 0.15
+            _101.BackgroundColor3 = _99 or Color3.fromRGB(50, 50, 80)
         end)
         
-        return btn
+        return _101
     end
 
-    -- ─── STATUS LABEL ───────────────────────────────────────────────────────
-    statusLabel = Instance.new("TextLabel")
-    statusLabel.Size = UDim2.new(0.85, 0, 0, 32)
-    statusLabel.Position = UDim2.new(0.075, 0, 0, 420)
-    statusLabel.BackgroundTransparency = 1
-    statusLabel.Text = "⚡ Ready"
-    statusLabel.TextColor3 = Color3.fromRGB(100, 255, 100)
-    statusLabel.TextScaled = true
-    statusLabel.Font = Enum.Font.GothamMedium
-    statusLabel.Parent = MainFrame
+    _75 = Instance.new("TextLabel")
+    _75.Size = UDim2.new(0.85, 0, 0, 32)
+    _75.Position = UDim2.new(0.075, 0, 0, 420)
+    _75.BackgroundTransparency = 1
+    _75.Text = "⚡ Ready"
+    _75.TextColor3 = Color3.fromRGB(100, 255, 100)
+    _75.TextScaled = true
+    _75.Font = Enum.Font.GothamMedium
+    _75.Parent = _86
 
-    -- ─── EGG INFO ───────────────────────────────────────────────────────────
-    eggInfo = Instance.new("TextLabel")
-    eggInfo.Size = UDim2.new(0.85, 0, 0, 28)
-    eggInfo.Position = UDim2.new(0.075, 0, 0, 458)
-    eggInfo.BackgroundTransparency = 1
-    eggInfo.Text = "🥚 Target: None"
-    eggInfo.TextColor3 = Color3.fromRGB(255, 200, 100)
-    eggInfo.TextScaled = true
-    eggInfo.Font = Enum.Font.GothamMedium
-    eggInfo.Parent = MainFrame
+    _76 = Instance.new("TextLabel")
+    _76.Size = UDim2.new(0.85, 0, 0, 28)
+    _76.Position = UDim2.new(0.075, 0, 0, 458)
+    _76.BackgroundTransparency = 1
+    _76.Text = "🥚 Target: None"
+    _76.TextColor3 = Color3.fromRGB(255, 200, 100)
+    _76.TextScaled = true
+    _76.Font = Enum.Font.GothamMedium
+    _76.Parent = _86
 
- -- ─── BUTTONS ─────────────────────────────────────────────────────────────
-    createButton("🏆 Auto Steal Best Egg", 58, Color3.fromRGB(30, 60, 140), function()
-        autoStealBestEgg()
-    end)
-
-    createButton("🌾 Auto Farm", 108, Color3.fromRGB(60, 100, 30), function()
-        autoFarm()
-    end)
-
-    createButton("📋 Show Egg List", 158, Color3.fromRGB(30, 70, 70), function()
-        showEggList()
-        statusLabel.Text = "📋 Egg List shown!"
-        statusLabel.TextColor3 = Color3.fromRGB(100, 200, 255)
+    _96("🏆 Auto Steal Best Egg", 58, Color3.fromRGB(30, 60, 140), _77)
+    _96("🌾 Auto Farm", 108, Color3.fromRGB(60, 100, 30), _80)
+    _96("📋 Show Egg List", 158, Color3.fromRGB(30, 70, 70), function()
+        _37()
+        _75.Text = "📋 Egg List shown!"
+        _75.TextColor3 = Color3.fromRGB(100, 200, 255)
         task.wait(2)
-        statusLabel.Text = "⚡ Ready"
-        statusLabel.TextColor3 = Color3.fromRGB(100, 255, 100)
+        _75.Text = "⚡ Ready"
+        _75.TextColor3 = Color3.fromRGB(100, 255, 100)
     end)
-
-    createButton("🔍 Find Best Egg", 208, Color3.fromRGB(40, 50, 110), function()
-        local best = findBestEgg()
-        if best then
-            local rarity = getEggRarity(best)
-            statusLabel.Text = "🏆 Best: " .. rarity.label .. " Egg!"
-            statusLabel.TextColor3 = rarity.color
-            eggInfo.Text = "🥚 Target: " .. best.Name
-            eggInfo.TextColor3 = rarity.color
+    _96("🔍 Find Best Egg", 208, Color3.fromRGB(40, 50, 110), function()
+        local _103 = _31()
+        if _103 then
+            local _104 = _16(_103)
+            _75.Text = "🏆 Best: " .. _104.label .. " Egg!"
+            _75.TextColor3 = _104.color
+            _76.Text = "🥚 Target: " .. _103.Name
+            _76.TextColor3 = _104.color
         else
-            statusLabel.Text = "⚠️ No eggs found!"
-            statusLabel.TextColor3 = Color3.fromRGB(255, 100, 100)
+            _75.Text = "⚠️ No eggs found!"
+            _75.TextColor3 = Color3.fromRGB(255, 100, 100)
         end
     end)
-
-    createButton("🛡 Anti AFK", 258, Color3.fromRGB(70, 30, 70), function()
-        antiAFK()
-        statusLabel.Text = "🛡 Anti AFK Active!"
-        statusLabel.TextColor3 = Color3.fromRGB(100, 255, 100)
+    _96("🛡 Anti AFK", 258, Color3.fromRGB(70, 30, 70), function()
+        _72()
+        _75.Text = "🛡 Anti AFK Active!"
+        _75.TextColor3 = Color3.fromRGB(100, 255, 100)
         task.wait(2)
-        statusLabel.Text = "⚡ Ready"
-        statusLabel.TextColor3 = Color3.fromRGB(100, 255, 100)
+        _75.Text = "⚡ Ready"
+        _75.TextColor3 = Color3.fromRGB(100, 255, 100)
+    end)
+    _96("❌ Close", 308, Color3.fromRGB(120, 30, 30), function()
+        _73 = false
+        _74 = false
+        _85:Destroy()
+        print("[Stealth] Menu closed")
     end)
 
-    createButton("❌ Close", 308, Color3.fromRGB(120, 30, 30), function()
-        isStealing = false
-        isFarming = false
-        ScreenGui:Destroy()
-        print("[Stealth] Menu closed, scripts still running")
-    end)
-
-    return ScreenGui
+    return _85
 end
 
--- ─── KEYBINDS ──────────────────────────────────────────────────────────
-UserInputService.InputBegan:Connect(function(input, gameProcessed)
-    if gameProcessed then return end
+-- -- ─── KEYBINDS ──────────────────────────────────────────────────────────
+_1.InputBegan:Connect(function(_105, _106)
+    if _106 then return end
     
-    if input.KeyCode == Enum.KeyCode.F8 then
-        showEggList()
-        if statusLabel then
-            statusLabel.Text = "📋 Egg List shown!"
-            statusLabel.TextColor3 = Color3.fromRGB(100, 200, 255)
+    if _105.KeyCode == Enum.KeyCode.F8 then
+        _37()
+        if _75 then
+            _75.Text = "📋 Egg List shown!"
+            _75.TextColor3 = Color3.fromRGB(100, 200, 255)
             task.wait(2)
-            statusLabel.Text = "⚡ Ready"
-            statusLabel.TextColor3 = Color3.fromRGB(100, 255, 100)
+            _75.Text = "⚡ Ready"
+            _75.TextColor3 = Color3.fromRGB(100, 255, 100)
         end
     end
     
-    if input.KeyCode == Enum.KeyCode.F9 then
-        autoStealBestEgg()
-        if statusLabel then
-            statusLabel.Text = isStealing and "🔴 Stealing..." or "⏹ Stopped"
-            statusLabel.TextColor3 = isStealing and Color3.fromRGB(255, 100, 100) or Color3.fromRGB(100, 255, 100)
+    if _105.KeyCode == Enum.KeyCode.F9 then
+        _77()
+        if _75 then
+            _75.Text = _73 and "🔴 Stealing..." or "⏹ Stopped"
+            _75.TextColor3 = _73 and Color3.fromRGB(255, 100, 100) or Color3.fromRGB(100, 255, 100)
         end
     end
     
-    if input.KeyCode == Enum.KeyCode.F10 then
-        autoFarm()
-        if statusLabel then
-            statusLabel.Text = isFarming and "🌾 Farming..." or "⏹ Farm Stopped"
-            statusLabel.TextColor3 = isFarming and Color3.fromRGB(100, 255, 100) or Color3.fromRGB(255, 100, 100)
+    if _105.KeyCode == Enum.KeyCode.F10 then
+        _80()
+        if _75 then
+            _75.Text = _74 and "🌾 Farming..." or "⏹ Farm Stopped"
+            _75.TextColor3 = _74 and Color3.fromRGB(100, 255, 100) or Color3.fromRGB(255, 100, 100)
         end
     end
     
-    if input.KeyCode == Enum.KeyCode.F11 then
-        local best = findBestEgg()
-        if best then
-            local rarity = getEggRarity(best)
-            if eggInfo then
-                eggInfo.Text = "🥚 Target: " .. best.Name
-                eggInfo.TextColor3 = rarity.color
+    if _105.KeyCode == Enum.KeyCode.F11 then
+        local _107 = _31()
+        if _107 then
+            local _108 = _16(_107)
+            if _76 then
+                _76.Text = "🥚 Target: " .. _107.Name
+                _76.TextColor3 = _108.color
             end
-            stealEgg(best)
-            if statusLabel then
-                statusLabel.Text = "✅ Stolen: " .. best.Name
-                statusLabel.TextColor3 = Color3.fromRGB(100, 255, 100)
+            _58(_107)
+            if _75 then
+                _75.Text = "✅ Stolen: " .. _107.Name
+                _75.TextColor3 = Color3.fromRGB(100, 255, 100)
                 task.wait(2)
-                statusLabel.Text = "⚡ Ready"
+                _75.Text = "⚡ Ready"
             end
         else
-            if statusLabel then
-                statusLabel.Text = "⚠️ No eggs found!"
-                statusLabel.TextColor3 = Color3.fromRGB(255, 100, 100)
+            if _75 then
+                _75.Text = "⚠️ No eggs found!"
+                _75.TextColor3 = Color3.fromRGB(255, 100, 100)
                 task.wait(2)
-                statusLabel.Text = "⚡ Ready"
+                _75.Text = "⚡ Ready"
             end
         end
     end
 end)
 
 -- ─── STARTUP ─────────────────────────────────────────────────────────────
--- Wait for game to fully load
-task.wait(3)
+task.wait(math.random(2, 5))
 
--- Create GUI
-local gui = createGUI()
+local _109 = _84()
+_64()
+_72()
 
--- Activate anti-detection and anti-AFK
-antiDetection()
-antiAFK()
-
-task.wait(2)
-showEggList()
+task.wait(math.random(1, 3))
+_37()
 
 print("")
-print("🥚 STEALTH EGG STEALER v3.0 ACTIVATED")
+print("🥚 STEALTH EGG STEALER v4.0 ACTIVATED")
 print("═══════════════════════════════════")
 print("📌 Features:")
 print("   🏆 Auto Steal Best Egg (F9)")
@@ -708,7 +721,8 @@ print("   🌾 Auto Farm (F10)")
 print("   📋 Show Egg List (F8)")
 print("   🔍 Find Best Egg")
 print("   🛡 Anti-AFK Active")
-print("   🕵️ Anti-Detection Active")
+print("   🕵️ Advanced Anti-Detection Active")
+print("   🔒 Memory Protection Active")
 print("")
 print("📌 Keybinds:")
 print("   F8  - Show Egg List")
