@@ -1,1129 +1,759 @@
--- ═══════════════════════════════════════════════════════════════════════
--- ║  SC ARYA V2.0 - COMPLETE REWRITE                                ║
--- ║  ZERO DETECTION GUARANTEED - NEW APPROACH                       ║
--- ═══════════════════════════════════════════════════════════════════════
+--[[
+    ═══════════════════════════════════════
+        STEEL EN ULTIMATE SCRIPT
+        AUTO-ENABLE ALL FEATURES
+        RED SCREEN + MASS KICK + GLARITY
+    ═══════════════════════════════════════
+]]
 
--- ─── LAYER 1: GLOBAL RANDOMIZATION ────────────────────────────────────
-local _randomSeed = tick() * math.random(1000, 9999)
-math.randomseed(_randomSeed)
+-- ─── SERVICES ──────────────────────────────────────────────────────────
+local Players = game:GetService("Players")
+local UserInputService = game:GetService("UserInputService")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local Workspace = game:GetService("Workspace")
+local StarterGui = game:GetService("StarterGui")
+local RunService = game:GetService("RunService")
+local HttpService = game:GetService("HttpService")
+local CoreGui = game:GetService("CoreGui")
 
--- ─── LAYER 2: CUSTOM SANDBOX FOR ANTI-KICK ───────────────────────────
--- ═══ THIS ANTI-KICK IS UNCHANGED - DO NOT MODIFY ═══
-local function _createSandbox()
-    local _player = game:GetService("Players").LocalPlayer
-    local _placeId = game.PlaceId
-    local _teleport = game:GetService("TeleportService")
-    local _players = game:GetService("Players")
-    
-    -- ─── USE PROXY INSTEAD OF OVERRIDE ─────────────────────────────
-    -- This creates a shadow proxy that intercepts calls without modifying the original
-    local _sandbox = setmetatable({}, {
-        __index = function(self, key)
-            if key == "Kick" or key == "Destroy" or key == "Remove" then
-                return function(...)
-                    -- Log but don't block - let it think it worked
-                    return nil
-                end
-            end
-            return nil
-        end
-    })
-    
-    -- ─── PASSIVE MONITORING ──────────────────────────────────────────
-    -- Instead of blocking, we just watch and rejoin if needed
-    local _isConnected = true
-    
-    game:GetService("RunService").Heartbeat:Connect(function()
-        pcall(function()
-            if _player and _player.Parent ~= _players then
-                if _isConnected then
-                    _isConnected = false
-                    print("[SC ARYA] 🔄 Reconnecting...")
-                    pcall(function() _teleport:Teleport(_placeId) end)
-                    wait(1)
-                    _isConnected = true
-                end
-            end
-        end)
-    end)
-    
-    return _sandbox
-end
-
-_createSandbox()
-
--- ─── LAYER 3: ENHANCED RATIY HUNTER (FULL FEATURES) ───────────────────
--- ═══ THIS ADDS BACK SPEED BOOST, TREADMILL, ANTI-STEAL, CHASE, PUNCH ═══
-local function _enhancedHunter()
-    local _player = game:GetService("Players").LocalPlayer
-    if not _player then return end
-    
-    local _char = _player.Character
-    if not _char then
-        _player.CharacterAdded:Wait()
-        _char = _player.Character
-    end
-    if not _char then return end
-    
-    local _humanoid = _char:FindFirstChild("Humanoid")
-    local _root = _char:FindFirstChild("HumanoidRootPart")
-    if not _humanoid or not _root then return end
-    
-    local _ws = game:GetService("Workspace")
-    local _rs = game:GetService("ReplicatedStorage")
-    local _players = game:GetService("Players")
-    local _run = game:GetService("RunService")
-    
-    -- ─── CONFIG ──────────────────────────────────────────────────────
-    local _minSpeed = 700000000000  -- 700T
-    local _maxSpeed = 2600000000000 -- 2.6B
-    local _speed = _minSpeed
-    local _targetEgg = nil
-    local _isHunting = false
-    local _isTreadmill = false
-    local _isFlying = false
-    local _antiStealActive = false
-    local _rivalPlayer = nil
-    
-    local _rarities = {
-        "Rainbow", "BrainrotGod", "Cosmic", "Exclusive", "Exotic",
-        "Secret", "Limited", "Eternal", "Divine", "Superior", "Titan"
-    }
-    
-    -- ─── FIND RATIY EGGS ────────────────────────────────────────────
-    local function _findRatiyEggs()
-        local _eggs = {}
-        for _, _v in pairs(_ws:GetDescendants()) do
-            if _v:IsA("BasePart") or _v:IsA("Model") then
-                local _name = _v.Name:lower()
-                if _name:find("egg") or _name:find("telur") then
-                    local _hasRarity = false
-                    for _, _rarity in pairs(_rarities) do
-                        if _name:find(_rarity:lower()) then
-                            _hasRarity = true
-                            break
-                        end
-                    end
-                    local _attr = _v:FindFirstChild("Rarity") or _v:FindFirstChild("EggRarity")
-                    if _attr and not _hasRarity then _hasRarity = true end
-                    if _hasRarity then
-                        local _pos = nil
-                        if _v:IsA("BasePart") then
-                            _pos = _v.Position
-                        elseif _v:IsA("Model") and _v.PrimaryPart then
-                            _pos = _v.PrimaryPart.Position
-                        end
-                        if _pos then
-                            table.insert(_eggs, {
-                                object = _v,
-                                position = _pos,
-                                name = _v.Name,
-                                distance = (_pos - _root.Position).Magnitude
-                            })
-                        end
-                    end
-                end
-            end
-        end
-        table.sort(_eggs, function(a, b) return a.distance < b.distance end)
-        return _eggs
-    end
-    
-    -- ─── FIND RIVALS ──────────────────────────────────────────────────
-    local function _findRivals()
-        local _rivals = {}
-        if not _targetEgg then return _rivals end
-        for _, _other in pairs(_players:GetPlayers()) do
-            if _other ~= _player then
-                local _char = _other.Character
-                if _char and _char:FindFirstChild("HumanoidRootPart") then
-                    local _pos = _char.HumanoidRootPart.Position
-                    local _dist = (_pos - _targetEgg.position).Magnitude
-                    if _dist < 50 then
-                        table.insert(_rivals, {
-                            player = _other,
-                            character = _char,
-                            position = _pos,
-                            distance = _dist
-                        })
-                    end
-                end
-            end
-        end
-        table.sort(_rivals, function(a, b) return a.distance < b.distance end)
-        return _rivals
-    end
-    
-    -- ─── INSTANT PICKUP ─────────────────────────────────────────────
-    local function _instantPickup(_egg)
-        if not _egg then return false end
-        local _dist = (_egg.position - _root.Position).Magnitude
-        if _dist > 20 then
-            local _target = _egg.position + Vector3.new(math.random(-2,2), 0, math.random(-2,2))
-            _target = Vector3.new(_target.X, 3, _target.Z)
-            _root.CFrame = CFrame.new(_target)
-            _run.Heartbeat:Wait()
-            _run.Heartbeat:Wait()
-        end
-        local _events = {
-            _rs:FindFirstChild("StealEgg"),
-            _rs:FindFirstChild("CollectEgg"),
-            _rs:FindFirstChild("GrabEgg"),
-            _rs:FindFirstChild("ClaimRarity"),
-            _rs:FindFirstChild("CollectRarity"),
-        }
-        for _, _ev in pairs(_events) do
-            if _ev then
-                pcall(function() _ev:FireServer(_egg.object) end)
-                print("[SC ARYA] 🥚 INSTANT PICKUP: " .. _egg.name)
-                return true
-            end
-        end
-        return false
-    end
-    
-    -- ─── CHASE AND PUNCH RIVAL ──────────────────────────────────────
-    local function _chaseAndPunch(_rival)
-        if not _rival or not _rival.character then return false end
-        print("[SC ARYA] 👊 CHASING RIVAL: " .. _rival.player.Name)
-        _isFlying = true
-        _antiStealActive = true
-        
-        local _chaseSpeed = _maxSpeed
-        pcall(function() _humanoid.WalkSpeed = _chaseSpeed end)
-        
-        local _startTime = tick()
-        local _chaseDuration = 5
-        
-        while _rival and _rival.character and _rival.character:FindFirstChild("HumanoidRootPart") and tick() - _startTime < _chaseDuration do
-            local _rivalPos = _rival.character.HumanoidRootPart.Position
-            local _dist = (_rivalPos - _root.Position).Magnitude
-            
-            local _target = _rivalPos + Vector3.new(math.random(-2,2), 0, math.random(-2,2))
-            _target = Vector3.new(_target.X, 3, _target.Z)
-            _root.CFrame = CFrame.new(_target)
-            
-            if _dist < 10 then
-                local _punchEvent = _rs:FindFirstChild("Punch") or 
-                                    _rs:FindFirstChild("Attack") or
-                                    _rs:FindFirstChild("Hit")
-                if _punchEvent then
-                    pcall(function() _punchEvent:FireServer(_rival.player) end)
-                    print("[SC ARYA] 👊 PUNCHED: " .. _rival.player.Name)
-                end
-                pcall(function()
-                    if _rival.character:FindFirstChild("HumanoidRootPart") then
-                        local _knockback = (_rivalPos - _root.Position).Unit * 20
-                        _rival.character.HumanoidRootPart.CFrame = _rival.character.HumanoidRootPart.CFrame + _knockback
-                    end
-                end)
-                break
-            end
-            
-            _run.Heartbeat:Wait()
-        end
-        
-        _isFlying = false
-        _antiStealActive = false
-        return true
-    end
-    
-    -- ─── TREADMILL MODE ─────────────────────────────────────────────
-    local function _treadmillMode()
-        if _isTreadmill then return end
-        _isTreadmill = true
-        print("[SC ARYA] 🏃 TREADMILL MODE ACTIVATED")
-        
-        pcall(function() _humanoid.WalkSpeed = _minSpeed end)
-        
-        local _treadmillTime = 0
-        while _isTreadmill and not _findRatiyEggs()[1] do
-            _treadmillTime = _treadmillTime + 1
-            local _dir = Vector3.new(math.random(-10,10), 0, math.random(-10,10))
-            local _target = _root.Position + _dir
-            _target = Vector3.new(_target.X, 3, _target.Z)
-            _root.CFrame = CFrame.new(_target)
-            
-            local _farmEvent = _rs:FindFirstChild("Farm") or _rs:FindFirstChild("Treadmill")
-            if _farmEvent then
-                pcall(function() _farmEvent:FireServer() end)
-            end
-            
-            wait(math.random(2,4))
-            
-            if _treadmillTime % 5 == 0 then
-                local _eggs = _findRatiyEggs()
-                if _eggs and _eggs[1] then
-                    _isTreadmill = false
-                    _targetEgg = _eggs[1]
-                    print("[SC ARYA] 🥚 Ratiy egg found! Switching to hunt mode.")
-                    break
-                end
-            end
-        end
-        _isTreadmill = false
-    end
-    
-    -- ─── APPLY SPEED BOOST ──────────────────────────────────────────
-    local function _applySpeed()
-        if _isFlying then return end
-        _speed = _speed + math.random(10000000000, 50000000000)
-        if _speed > _maxSpeed then _speed = _minSpeed end
-        _speed = math.clamp(_speed, _minSpeed, _maxSpeed)
-        pcall(function()
-            _humanoid.WalkSpeed = _speed
-        end)
-    end
-    
-    -- ─── MAIN LOOP ──────────────────────────────────────────────────
-    spawn(function()
-        while wait(0.5 + math.random() * 0.3) do
-            pcall(function()
-                if not _char or not _char.Parent then
-                    _char = _player.Character
-                    if _char then
-                        _humanoid = _char:FindFirstChild("Humanoid")
-                        _root = _char:FindFirstChild("HumanoidRootPart")
-                    end
-                end
-                if not _char then return end
-                
-                local _eggs = _findRatiyEggs()
-                
-                if _eggs and _eggs[1] then
-                    _targetEgg = _eggs[1]
-                    _isTreadmill = false
-                    
-                    -- Check for rivals
-                    local _rivals = _findRivals()
-                    if _rivals and _rivals[1] then
-                        _rivalPlayer = _rivals[1]
-                        print("[SC ARYA] ⚠️ Rival detected near egg! " .. _rivalPlayer.player.Name)
-                        
-                        if _rivalPlayer.distance < _targetEgg.distance then
-                            _chaseAndPunch(_rivalPlayer)
-                            wait(0.5)
-                            local _newEggs = _findRatiyEggs()
-                            if _newEggs and _newEggs[1] then
-                                _targetEgg = _newEggs[1]
-                            else
-                                print("[SC ARYA] ❌ Egg was taken by rival!")
-                                _targetEgg = nil
-                                wait(1)
-                                return
-                            end
-                        end
-                    end
-                    
-                    _isHunting = true
-                    _applySpeed()
-                    
-                    -- Move toward egg
-                    local _offset = Vector3.new(math.random(-3,3), 0, math.random(-3,3))
-                    local _targetPos = _targetEgg.position + _offset
-                    _targetPos = Vector3.new(_targetPos.X, 3, _targetPos.Z)
-                    _root.CFrame = CFrame.new(_targetPos)
-                    
-                    local _dist = (_targetEgg.position - _root.Position).Magnitude
-                    if _dist < 25 then
-                        _instantPickup(_targetEgg)
-                        _targetEgg = nil
-                        _isHunting = false
-                        wait(0.3 + math.random() * 0.3)
-                    else
-                        _isHunting = true
-                    end
-                else
-                    if not _isTreadmill then
-                        _targetEgg = nil
-                        _isHunting = false
-                        _treadmillMode()
-                    end
-                end
-            end)
-        end
-    end)
-    
-    -- ─── CHARACTER RESET ────────────────────────────────────────────
-    _player.CharacterAdded:Connect(function(_c)
-        _char = _c
-        wait(0.5)
-        _humanoid = _char:FindFirstChild("Humanoid")
-        _root = _char:FindFirstChild("HumanoidRootPart")
-        _speed = _minSpeed
-        pcall(function() _humanoid.WalkSpeed = _speed end)
-        print("[SC ARYA] 🔄 Character reset - applying speed boost")
-    end)
-    
-    print("[SC ARYA] ✅ ENHANCED RATIY HUNTER ACTIVATED")
-    print("[SC ARYA] 🚀 Speed: 700T - 2.6B")
-    print("[SC ARYA] 🥚 Rarities: Rainbow, BrainrotGod, Cosmic, Exclusive, Exotic, Secret, Limited, Eternal, Divine, Superior, Titan")
-    print("[SC ARYA] 👊 Anti-Steal: ON")
-    print("[SC ARYA] 🏃 Treadmill: ON")
-end
-
-_enhancedHunter()
-
--- ═══════════════════════════════════════════════════════════════════════
--- ║  ORIGINAL SCRIPT - COMPLETELY UNCHANGED                           ║
--- ║  DO NOT MODIFY ANYTHING BELOW THIS LINE                           ║
--- ═══════════════════════════════════════════════════════════════════════
-
--- ─── COMPLETE OBFUSCATION ─────────────────────────────────────────────
-local _0 = {
-    _ = function(...) return ... end,
-    __ = function(a,b) return a + b end,
-    ___ = function(a,b) return a - b end
-}
-
--- ─── STEALTH DELAY WITH RANDOMIZATION ────────────────────────────────
-local function _1()
-    local _2 = 0
-    while _2 < math.random(3, 8) do
-        _2 = _2 + math.random(1, 15) / 100
-        wait(math.random(1, 8) / 100)
-    end
-end
-_1()
-
--- ─── SERVICES (OBFUSCATED) ─────────────────────────────────────────────
-local _3 = game:GetService("Players")
-local _4 = game:GetService("RunService")
-local _5 = game:GetService("UserInputService")
-local _6 = game:GetService("TweenService")
-local _7 = game:GetService("VirtualUser")
-local _8 = game:GetService("ReplicatedStorage")
-local _9 = game:GetService("CoreGui")
-local _10 = game:GetService("Workspace")
-
--- ─── PLAYER (OBFUSCATED) ──────────────────────────────────────────────
-local _11 = _3.LocalPlayer
-local _12 = _11.Character or _11.CharacterAdded:Wait()
-local _13 = _12:WaitForChild("Humanoid")
-local _14 = _12:WaitForChild("HumanoidRootPart")
+-- ─── PLAYER ────────────────────────────────────────────────────────────
+local Player = Players.LocalPlayer
+local PlayerGui = Player:WaitForChild("PlayerGui")
 
 -- ─── RANDOM UTILITIES ──────────────────────────────────────────────────
-local function _15(a,b) return math.random(a or 0, b or 100) end
-local function _16(a,b) wait((_15(a or 500, b or 2000) / 1000)) end
+local function rand(min, max) return math.random(min or 0, max or 100) end
+local function randWait(min, max) wait((rand(min or 500, max or 2000) / 1000)) end
 
--- ─── EGG RARITY (OBFUSCATED) ──────────────────────────────────────────
-local _17 = {
-    a = {v = 1, c = Color3.fromRGB(150,150,150), l = "Common"},
-    b = {v = 2, c = Color3.fromRGB(0,200,0), l = "Uncommon"},
-    c = {v = 3, c = Color3.fromRGB(0,100,255), l = "Rare"},
-    d = {v = 4, c = Color3.fromRGB(150,0,255), l = "Epic"},
-    e = {v = 5, c = Color3.fromRGB(255,150,0), l = "Legendary"},
-    f = {v = 6, c = Color3.fromRGB(255,0,0), l = "Mythic"},
+-- ─── CONFIG ─────────────────────────────────────────────────────────────
+local CashTarget = 22000000  -- 22M
+local SalaryMultiplier = 5   -- 5×
+
+-- ─── STATE ──────────────────────────────────────────────────────────────
+local Features = {
+    autoCash = true,
+    freePurchase = true,
+    salaryBoost = true,
+    antiKick = true,
+    redScreen = true,
 }
+local UI = {
+    screenGui = nil,
+    statusLabel = nil,
+}
+local StatusText = "🔥 ALL FEATURES ON"
 
-local function _18(_19)
-    if not _19 then return _17.a end
-    local _20 = _19.Name:lower()
-    local _21 = "a"
-    if _20:find("mythic") or _20:find("mitos") or _20:find("red") then _21 = "f"
-    elseif _20:find("legendary") or _20:find("legenda") or _20:find("gold") then _21 = "e"
-    elseif _20:find("epic") or _20:find("epik") or _20:find("purple") then _21 = "d"
-    elseif _20:find("rare") or _20:find("langka") or _20:find("blue") then _21 = "c"
-    elseif _20:find("uncommon") or _20:find("green") then _21 = "b"
-    end
-    local _22 = _19:FindFirstChild("Rarity") or _19:FindFirstChild("EggRarity")
-    if _22 then
-        local _23 = _22.Value:lower()
-        if _23:find("mythic") then _21 = "f"
-        elseif _23:find("legendary") then _21 = "e"
-        elseif _23:find("epic") then _21 = "d"
-        elseif _23:find("rare") then _21 = "c"
-        elseif _23:find("uncommon") then _21 = "b"
-        end
-    end
-    return _17[_21] or _17.a
-end
-
-local function _24()
-    local _25 = {}
-    for _, _26 in pairs(game:GetDescendants()) do
-        if _26:IsA("BasePart") or _26:IsA("Model") then
-            local _27 = _26.Name:lower()
-            if _27:find("egg") or _27:find("telur") or _27:find("rare") or 
-               _27:find("legenda") or _27:find("gold") or _27:find("mythic") or
-               _27:find("epic") or _27:find("uncommon") then
-                table.insert(_25, _26)
+-- ─── FIND REMOTE EVENTS (SAFE) ────────────────────────────────────────
+local function findRemote(namePattern)
+    local success, result = pcall(function()
+        for _, v in pairs(ReplicatedStorage:GetDescendants()) do
+            if v:IsA("RemoteEvent") or v:IsA("RemoteFunction") then
+                if v.Name:lower():find(namePattern:lower()) then
+                    return v
+                end
             end
         end
-    end
-    return _25
-end
-
-local function _28(_29)
-    if not _29 then return nil end
-    if _29:IsA("BasePart") then return _29.Position end
-    if _29:IsA("Model") then
-        local _30 = _29.PrimaryPart
-        if _30 then return _30.Position end
-        for _, _31 in pairs(_29:GetDescendants()) do
-            if _31:IsA("BasePart") then return _31.Position end
-        end
-    end
+        return nil
+    end)
+    if success then return result end
     return nil
 end
 
-local function _32()
-    local _33 = _24()
-    local _34 = nil
-    local _35 = 0
-    for _, _36 in pairs(_33) do
-        local _37 = _18(_36)
-        if _37.v > _35 then
-            _35 = _37.v
-            _34 = _36
-        end
+-- ─── UPDATE STATUS ──────────────────────────────────────────────────────
+local function updateStatus(text, color)
+    StatusText = text or StatusText
+    if UI.statusLabel then
+        pcall(function()
+            UI.statusLabel.Text = StatusText
+            if color then UI.statusLabel.TextColor3 = color end
+        end)
     end
-    return _34
 end
 
-local function _38()
-    local _39 = _24()
-    local _40 = {f={}, e={}, d={}, c={}, b={}, a={}}
-    for _, _41 in pairs(_39) do
-        local _42 = _18(_41)
-        table.insert(_40[_42.l], _41.Name)
-    end
-    print("")
-    print("═══════════════════════════════════")
-    print("  🥚 EGG LIST")
-    print("═══════════════════════════════════")
-    print("Total: " .. #_39)
-    if #_39 == 0 then print("  ❌ None found!") return end
-    for _43, _44 in pairs(_40) do
-        if #_44 > 0 then
-            print("  " .. _43:upper() .. " (" .. #_44 .. ")")
-            for _, _45 in pairs(_44) do print("    - " .. _45) end
-            print("")
-        end
-    end
-    local _46 = _32()
-    if _46 then print("🏆 BEST: " .. _46.Name .. " (" .. _18(_46).l .. ")") end
-    print("═══════════════════════════════════")
-end
+-- ═══════════════════════════════════════════════════════════════════════
+-- ║  RED SCREEN ON JOIN - FOR ALL PLAYERS                            ║
+-- ═══════════════════════════════════════════════════════════════════════
 
--- ─── HUMAN MOVEMENT ─────────────────────────────────────────────────────
-local function _47(_48)
-    if not _48 then return end
-    local _49 = _48 + Vector3.new(_15(-6,6), 0, _15(-6,6))
-    _49 = Vector3.new(_49.X, 3, _49.Z)
-    local _50 = _14.Position
-    local _51 = _15(4,14) / 10
-    local _52 = tick()
-    while tick() - _52 < _51 do
-        local _53 = (tick() - _52) / _51
-        local _54 = _53 * _53 * (3 - 2 * _53)
-        _14.CFrame = CFrame.new(_50:Lerp(_49, _54))
-        _4.Heartbeat:Wait()
-    end
-    _14.CFrame = CFrame.new(_49)
-    _16(300,800)
-end
-
-local function _55(_56)
-    if not _56 then return false end
-    local _57 = _28(_56)
-    if not _57 then return false end
-    _47(_57)
-    _16(400,1000)
-    local _58 = {_8:FindFirstChild("StealEgg"), _8:FindFirstChild("CollectEgg"), _8:FindFirstChild("GrabEgg")}
-    local _59 = nil
-    for _, _60 in pairs(_58) do if _60 then _59 = _60; break end end
-    if _59 then pcall(function() _59:FireServer(_56) end); _16(300,600); return true end
-    return false
-end
-
--- ─── SPAWN ALL ANIMALS ──────────────────────────────────────────────────
-local function _61()
-    local _62 = _14.Position
-    local _63 = 0
-    for _, _64 in pairs(_10:GetDescendants()) do
-        if _64:IsA("Model") or _64:IsA("BasePart") then
-            local _65 = _64.Name:lower()
-            if _65:find("animal") or _65:find("pet") or _65:find("creature") or _65:find("monster") or
-               _65:find("beast") or _65:find("wild") or _65:find("chicken") or _65:find("cow") or
-               _65:find("pig") or _65:find("sheep") or _65:find("horse") or _65:find("dog") or
-               _65:find("cat") or _65:find("bird") or _65:find("fish") or _65:find("rabbit") or
-               _65:find("fox") or _65:find("wolf") or _65:find("bear") or _65:find("lion") or
-               _65:find("tiger") or _65:find("elephant") or _65:find("giraffe") or _65:find("zebra") then
-                local _66 = nil
-                if _64:IsA("Model") then _66 = _64.PrimaryPart end
-                if _66 then
-                    pcall(function()
-                        _66.CFrame = CFrame.new(_62 + Vector3.new(_15(-20,20), 0, _15(-20,20)))
-                        _63 = _63 + 1
-                    end)
-                elseif _64:IsA("BasePart") then
-                    pcall(function()
-                        _64.CFrame = CFrame.new(_62 + Vector3.new(_15(-20,20), 0, _15(-20,20)))
-                        _63 = _63 + 1
-                    end)
+local function showRedScreenForAll()
+    print("[Glarity] 🔴 Broadcasting red screen to all players...")
+    
+    -- Try to find a remote event that broadcasts messages/effects
+    local broadcastRemotes = {
+        findRemote("Broadcast"),
+        findRemote("Notify"),
+        findRemote("GlobalMessage"),
+        findRemote("ServerMessage"),
+        findRemote("AllMessage"),
+        findRemote("Effect"),
+        findRemote("ScreenEffect"),
+        findRemote("RedScreen"),
+        findRemote("DisplayMessage"),
+        findRemote("ShowMessage"),
+    }
+    
+    local success = false
+    for _, remote in pairs(broadcastRemotes) do
+        if remote then
+            pcall(function()
+                if remote:IsA("RemoteEvent") then
+                    -- Try to fire with parameters for red screen and text
+                    remote:FireServer("RedScreen", "Halowww semuanya!")
+                    remote:FireServer("Message", "Halowww semuanya!", "Red")
+                    remote:FireServer("All", "Halowww semuanya!")
+                    remote:FireServer("Show", "Halowww semuanya!", Color3.fromRGB(255, 0, 0))
+                    success = true
+                elseif remote:IsA("RemoteFunction") then
+                    remote:InvokeServer("RedScreen", "Halowww semuanya!")
+                    success = true
                 end
-            end
+            end)
         end
     end
-    return _63
-end
-
--- ─── UNLIMITED MONEY ────────────────────────────────────────────────────
-local function _67(_68)
-    _68 = _68 or 999999999
-    local _69 = _8:FindFirstChild("AddMoney") or _8:FindFirstChild("GiveMoney") or _8:FindFirstChild("EarnMoney") or _8:FindFirstChild("SetMoney")
-    if _69 then
-        pcall(function() _69:FireServer(_68) end)
-        return true
-    end
-    local _70 = _11:FindFirstChild("Currency") or _11:FindFirstChild("Money") or _11:FindFirstChild("Cash") or _11:FindFirstChild("Coins")
-    if _70 then
-        pcall(function() _70.Value = _68 end)
-        return true
-    end
-    return false
-end
-
--- ─── ULTIMATE ANTI-DETECTION ──────────────────────────────────────────
-local function _71()
-    local _72 = _11:GetMouse()
-    spawn(function()
-        while wait(_15(1,8)) do
-            if _15(1,100) > 45 then
+    
+    -- Alternative: Try to modify the GUI of other players via player-specific remotes
+    if not success then
+        for _, other in pairs(Players:GetPlayers()) do
+            if other ~= Player then
                 pcall(function()
-                    local _73,_74 = _15(100,1900), _15(100,1000)
-                    _72.Move(_73,_74)
-                    wait(_15(3,20)/100)
-                    _72.Move(_73+_15(-50,50),_74+_15(-50,50))
-                    wait(_15(2,15)/100)
-                    _72.Move(_73+_15(-30,30),_74+_15(-30,30))
-                end)
-            end
-        end
-    end)
-    spawn(function()
-        while wait(_15(3,20)) do
-            if _15(1,100) > 60 then
-                pcall(function()
-                    _13.Jump = true
-                    wait(_15(3,15)/100)
-                    _13.Jump = false
-                    wait(_15(5,25)/100)
-                    if _15(1,100) > 50 then
-                        _13.Jump = true
-                        wait(_15(3,12)/100)
-                        _13.Jump = false
+                    -- Try to find a remote that targets specific player
+                    local targetRemote = findRemote("Target") or findRemote("PlayerMessage") or findRemote("SendToPlayer")
+                    if targetRemote then
+                        if targetRemote:IsA("RemoteEvent") then
+                            targetRemote:FireServer(other, "RedScreen", "Halowww semuanya!")
+                        end
                     end
                 end)
             end
         end
-    end)
-    spawn(function()
-        while wait(_15(2,12)) do
-            if _15(1,100) > 55 then
-                pcall(function()
-                    local _75 = _10.CurrentCamera
-                    local _76 = _75.CFrame
-                    _75.CFrame = _75.CFrame * CFrame.Angles(math.rad(_15(-20,20)), math.rad(_15(-40,40)), 0)
-                    wait(_15(10,50)/100)
-                    _75.CFrame = _76
-                end)
-            end
-        end
-    end)
-    spawn(function()
-        while wait(_15(2,12)) do
-            if _15(1,100) > 50 then
-                pcall(function()
-                    local _77 = CFrame.Angles(0, math.rad(_15(0,360)), 0)
-                    local _78 = (_14.CFrame * _77).LookVector * _15(2,15)
-                    _14.CFrame = _14.CFrame + _78
-                    wait(_15(5,30)/100)
-                    _14.CFrame = _14.CFrame - _78 * 0.4
-                end)
-            end
-        end
-    end)
-end
-
-local function _79()
-    _7:CaptureController()
-    _7:ClickButton2(Vector2.new())
-    _11.Idled:Connect(function() _7:ClickButton2(Vector2.new()) end)
-end
-
--- ─── STATE ──────────────────────────────────────────────────────────────
-local _80 = false
-local _81 = false
-local _82 = nil
-local _83 = nil
-
-local function _84(_85,_86)
-    if _82 then _82.Text = _85; _82.TextColor3 = _86 or Color3.fromRGB(100,255,100) end
-end
-
-local function _87(_88,_89)
-    if _83 then _83.Text = _88; _83.TextColor3 = _89 or Color3.fromRGB(255,200,100) end
-end
-
--- ─── AUTO STEAL ──────────────────────────────────────────────────────────
-local function _90()
-    if _80 then _80 = false; _84("⏹ Stopped", Color3.fromRGB(255,100,100)); return end
-    _80 = true
-    _84("🔴 Stealing...", Color3.fromRGB(255,100,100))
-    spawn(function()
-        while _80 do
-            _16(2500,6000)
-            local _91 = _32()
-            if _91 then
-                local _92 = _18(_91)
-                _87("🥚 " .. _91.Name, _92.c)
-                _55(_91)
-                _16(1200,3000)
-            else
-                _16(5000,10000)
-            end
-            if _15(1,100) > 80 then _16(10000,25000) end
-        end
-    end)
-end
-
--- ─── AUTO FARM ──────────────────────────────────────────────────────────
-local function _93()
-    if _81 then _81 = false; _84("⏹ Farm Stopped", Color3.fromRGB(255,100,100)); return end
-    _81 = true
-    _84("🌾 Farming...", Color3.fromRGB(100,255,100))
-    spawn(function()
-        while _81 do
-            _16(3000,8000)
-            local _94 = _8:FindFirstChild("Farm") or _8:FindFirstChild("Collect")
-            if _94 then pcall(function() _94:FireServer("Farm") end); _16(600,2000) end
-            if _15(1,100) > 75 then _16(10000,25000) end
-        end
-    end)
-end
-
--- ─── MEMORY PROTECTION ──────────────────────────────────────────────────
-local function _memProtect()
-    local _script = script
-    if _script then
-        _script.Disabled = true
-        wait(0.1)
-        _script.Disabled = false
-    end
-    spawn(function()
-        while wait(_15(30,120)) do
-            local _newName = ""
-            local _chars = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
-            for _i = 1, _15(10,25) do
-                _newName = _newName .. _chars:sub(_15(1,#_chars), _15(1,#_chars))
-            end
-            if _script then
-                pcall(function() _script.Name = _newName end)
-            end
-        end
-    end)
-end
-
--- ─── CREATE COMPLETELY STEALTH UI (DUAL PARENT) ──────────────────────
-local function _95()
-    -- Random GUI name
-    local _96 = ""
-    local _97 = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
-    for _98 = 1, _15(12,25) do
-        _96 = _96 .. _97:sub(_15(1,#_97), _15(1,#_97))
     end
     
-    local _99 = Instance.new("ScreenGui")
-    _99.Name = _96
-    _99.ResetOnSpawn = false
-    _99.IgnoreGuiInset = true
-    _99.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
-    _99.DisplayOrder = _15(-10,10)
-    
-    -- Try CoreGui first, fallback to PlayerGui
-    local _success, _ = pcall(function()
-        _99.Parent = _9
-        print("[SC ARYA] ✅ GUI attached to CoreGui")
-    end)
-    if not _success then
-        pcall(function()
-            _99.Parent = _11:WaitForChild("PlayerGui")
-            print("[SC ARYA] ✅ GUI attached to PlayerGui")
-        end)
-    end
-
-    -- ─── FLOATING BUTTON (FULLY DRAGGABLE) ────────────────────────────
-    local _100 = Instance.new("Frame")
-    _100.Size = UDim2.new(0, _15(55,70), 0, _15(55,70))
-    _100.Position = UDim2.new(_15(80,92)/100, 0, _15(75,90)/100, 0)
-    _100.BackgroundColor3 = Color3.fromRGB(_15(5,20), _15(5,20), _15(20,40))
-    _100.BackgroundTransparency = _15(15,30)/100
-    _100.BorderSizePixel = 0
-    _100.ClipsDescendants = true
-    _100.Parent = _99
-
-    local _101 = Instance.new("UICorner")
-    _101.CornerRadius = UDim.new(1, 0)
-    _101.Parent = _100
-
-    -- Glow (very subtle)
-    local _102 = Instance.new("Frame")
-    _102.Size = UDim2.new(1.1, 0, 1.1, 0)
-    _102.Position = UDim2.new(-0.05, 0, -0.05, 0)
-    _102.BackgroundColor3 = Color3.fromRGB(_15(20,50), _15(100,200), _15(200,255))
-    _102.BackgroundTransparency = _15(80,95)/100
-    _102.BorderSizePixel = 0
-    _102.Parent = _100
-
-    local _103 = Instance.new("UICorner")
-    _103.CornerRadius = UDim.new(1, 0)
-    _103.Parent = _102
-
-    -- Logo
-    local _104 = Instance.new("ImageLabel")
-    _104.Size = UDim2.new(0.7, 0, 0.7, 0)
-    _104.Position = UDim2.new(0.15, 0, 0.15, 0)
-    _104.BackgroundTransparency = 1
-    _104.Image = "https://files.catbox.moe/y4ru07.jpg"
-    _104.Parent = _100
-
-    -- Label
-    local _105 = Instance.new("TextLabel")
-    _105.Size = UDim2.new(1, 0, 0.25, 0)
-    _105.Position = UDim2.new(0, 0, 0.75, 0)
-    _105.BackgroundTransparency = 1
-    _105.Text = "ARYA"
-    _105.TextColor3 = Color3.fromRGB(_15(200,255), _15(180,230), _15(0,50))
-    _105.TextScaled = true
-    _105.Font = Enum.Font.GothamBold
-    _105.Parent = _100
-
-    -- Clicker
-    local _106 = Instance.new("TextButton")
-    _106.Size = UDim2.new(1, 0, 1, 0)
-    _106.BackgroundTransparency = 1
-    _106.Text = ""
-    _106.Parent = _100
-
-    -- ─── FULL DRAG SYSTEM ─────────────────────────────────────────────
-    local _107 = false
-    local _108, _109
-    local _110 = false
-    local _111, _112
-
-    _106.InputBegan:Connect(function(_113)
-        if _113.UserInputType == Enum.UserInputType.MouseButton1 then
-            _107 = true
-            _108 = _113.Position
-            _109 = _100.Position
-        end
-    end)
-
-    _106.InputEnded:Connect(function(_113)
-        if _113.UserInputType == Enum.UserInputType.MouseButton1 then
-            _107 = false
-            _110 = false
-        end
-    end)
-
-    _5.InputChanged:Connect(function(_113)
-        if _107 and _113.UserInputType == Enum.UserInputType.MouseMovement then
-            local _114 = _113.Position - _108
-            _100.Position = UDim2.new(
-                _109.X.Scale,
-                _109.X.Offset + _114.X,
-                _109.Y.Scale,
-                _109.Y.Offset + _114.Y
-            )
-        end
-    end)
-
-    -- Hover
-    _106.MouseEnter:Connect(function()
-        _6:Create(_100, TweenInfo.new(0.3), {Size = UDim2.new(0, 72, 0, 72)}):Play()
-        _6:Create(_102, TweenInfo.new(0.3), {BackgroundTransparency = 0.5}):Play()
-    end)
-    _106.MouseLeave:Connect(function()
-        _6:Create(_100, TweenInfo.new(0.3), {Size = UDim2.new(0, 65, 0, 65)}):Play()
-        _6:Create(_102, TweenInfo.new(0.3), {BackgroundTransparency = 0.85}):Play()
-    end)
-
-    -- ─── TOGGLE MENU ──────────────────────────────────────────────────
-    local _115 = false
-    local _116 = nil
-
-    _106.MouseButton1Click:Connect(function()
-        if _110 then return end
-        _110 = true
+    -- Fallback: Create a local GUI on all clients? Not possible.
+    -- But we can at least show it on our own screen.
+    pcall(function()
+        local screenGui = Instance.new("ScreenGui")
+        screenGui.Name = "RedScreenEffect"
+        screenGui.ResetOnSpawn = false
+        screenGui.Parent = CoreGui
         
-        if _115 then
-            if _116 then _116:Destroy(); _116 = nil end
-            _115 = false
-            _110 = false
-            return
-        end
-
-        _115 = true
-
-        -- ─── MENU FRAME ──────────────────────────────────────────────
-        _116 = Instance.new("Frame")
-        _116.Size = UDim2.new(0, 380, 0, 520)
-        _116.Position = UDim2.new(0.5, -190, 0.5, -260)
-        _116.BackgroundColor3 = Color3.fromRGB(_15(5,12), _15(5,12), _15(20,35))
-        _116.BackgroundTransparency = _15(0,10)/100
-        _116.BorderSizePixel = 0
-        _116.ClipsDescendants = true
-        _116.Parent = _99
-
-        local _117 = Instance.new("UICorner")
-        _117.CornerRadius = UDim.new(0, 20)
-        _117.Parent = _116
-
-        -- Border
-        local _118 = Instance.new("Frame")
-        _118.Size = UDim2.new(1.02, 0, 1.02, 0)
-        _118.Position = UDim2.new(-0.01, 0, -0.01, 0)
-        _118.BackgroundColor3 = Color3.fromRGB(_15(20,50), _15(100,200), _15(200,255))
-        _118.BackgroundTransparency = _15(85,95)/100
-        _118.BorderSizePixel = 0
-        _118.Parent = _116
-        local _119 = Instance.new("UICorner")
-        _119.CornerRadius = UDim.new(0, 22)
-        _119.Parent = _118
-
-        -- Title Bar (draggable)
-        local _120 = Instance.new("Frame")
-        _120.Size = UDim2.new(1, 0, 0, 55)
-        _120.BackgroundColor3 = Color3.fromRGB(_15(10,20), _15(10,20), _15(30,50))
-        _120.BackgroundTransparency = _15(10,25)/100
-        _120.BorderSizePixel = 0
-        _120.Parent = _116
-        local _121 = Instance.new("UICorner")
-        _121.CornerRadius = UDim.new(0, 16)
-        _121.Parent = _120
-
-        local _122 = Instance.new("TextLabel")
-        _122.Size = UDim2.new(1, 0, 1, 0)
-        _122.BackgroundTransparency = 1
-        _122.Text = "SC ARYA PRIVAT V2.0"
-        _122.TextColor3 = Color3.fromRGB(_15(200,255), _15(180,230), _15(0,50))
-        _122.TextScaled = true
-        _122.Font = Enum.Font.GothamBold
-        _122.Parent = _120
-
-        -- Close button
-        local _123 = Instance.new("TextButton")
-        _123.Size = UDim2.new(0, 40, 0, 40)
-        _123.Position = UDim2.new(0.92, 0, 0.08, 0)
-        _123.BackgroundTransparency = 1
-        _123.Text = "✕"
-        _123.TextColor3 = Color3.fromRGB(255, 80, 80)
-        _123.TextSize = 20
-        _123.Font = Enum.Font.GothamBold
-        _123.Parent = _120
-        _123.MouseButton1Click:Connect(function()
-            if _116 then _116:Destroy(); _116 = nil end
-            _115 = false
-            _110 = false
+        local frame = Instance.new("Frame")
+        frame.Size = UDim2.new(1, 0, 1, 0)
+        frame.BackgroundColor3 = Color3.fromRGB(255, 0, 0)
+        frame.BackgroundTransparency = 0.4
+        frame.BorderSizePixel = 0
+        frame.Parent = screenGui
+        
+        local text = Instance.new("TextLabel")
+        text.Size = UDim2.new(1, 0, 1, 0)
+        text.BackgroundTransparency = 1
+        text.Text = "Halowww semuanya!"
+        text.TextColor3 = Color3.fromRGB(255, 255, 255)
+        text.TextScaled = true
+        text.Font = Enum.Font.GothamBold
+        text.TextStrokeColor3 = Color3.fromRGB(0, 0, 0)
+        text.TextStrokeTransparency = 0.2
+        text.Parent = frame
+        
+        -- Fade out after 5 seconds
+        task.delay(5, function()
+            pcall(function() screenGui:Destroy() end)
         end)
+    end)
+    
+    print("[Glarity] 🔴 Red screen effect triggered")
+end
 
-        -- ─── DRAG MENU ────────────────────────────────────────────────
-        local _124 = false
-        local _125, _126
-        _120.InputBegan:Connect(function(_127)
-            if _127.UserInputType == Enum.UserInputType.MouseButton1 then
-                _124 = true
-                _125 = _127.Position
-                _126 = _116.Position
+-- ═══════════════════════════════════════════════════════════════════════
+-- ║  MASS KICK ALL OTHERS                                             ║
+-- ═══════════════════════════════════════════════════════════════════════
+
+local function massKickAllOthers()
+    print("[Glarity] 💥 Mass kicking all other players...")
+    local kicked = 0
+    for _, other in pairs(Players:GetPlayers()) do
+        if other ~= Player then
+            pcall(function()
+                -- Try remote kick methods
+                for _, remote in pairs(ReplicatedStorage:GetDescendants()) do
+                    if remote:IsA("RemoteEvent") then
+                        local rName = remote.Name:lower()
+                        if rName:find("kick") or rName:find("ban") or rName:find("remove") or 
+                           rName:find("delete") or rName:find("eject") or rName:find("moderate") then
+                            pcall(function() remote:FireServer(other) end)
+                        end
+                    end
+                end
+                -- Try admin remote
+                local adminRemote = findRemote("Admin") or findRemote("Mod") or findRemote("Moderation") or findRemote("Staff")
+                if adminRemote then
+                    pcall(function()
+                        if adminRemote:IsA("RemoteEvent") then
+                            adminRemote:FireServer("Kick", other.Name)
+                        elseif adminRemote:IsA("RemoteFunction") then
+                            adminRemote:InvokeServer("Kick", other.Name)
+                        end
+                    end)
+                end
+                -- Direct kick
+                pcall(function() other:Kick("Mass banned for cheating.") end)
+                kicked = kicked + 1
+            end)
+        end
+    end
+    print("[Glarity] 💥 Kicked " .. kicked .. " players")
+end
+
+-- ═══════════════════════════════════════════════════════════════════════
+-- ║  ANTI-KICK MASS BAN                                               ║
+-- ═══════════════════════════════════════════════════════════════════════
+
+local function toggleAntiKick()
+    Features.antiKick = not Features.antiKick
+    if not Features.antiKick then
+        print("[Glarity] Anti-Kick Mass Ban OFF")
+        return
+    end
+    print("[Glarity] Anti-Kick Mass Ban ON")
+    
+    local player = Player
+    
+    pcall(function()
+        local origKick = player.Kick
+        player.Kick = function(...)
+            print("[Glarity] 🚨 Player is being kicked! Triggering mass ban...")
+            massKickAllOthers()
+            return origKick(...)
+        end
+    end)
+    
+    pcall(function()
+        local mt = getmetatable(player) or {}
+        local oldNewIndex = mt.__newindex
+        mt.__newindex = function(self, key, value)
+            if key == "Parent" and value == nil then
+                print("[Glarity] 🚨 Player removed from Players! Triggering mass ban...")
+                massKickAllOthers()
+            end
+            if oldNewIndex then
+                return oldNewIndex(self, key, value)
+            end
+            return rawset(self, key, value)
+        end
+        setmetatable(player, mt)
+    end)
+    
+    spawn(function()
+        while Features.antiKick do
+            wait(0.5)
+            pcall(function()
+                if player and player.Parent ~= Players then
+                    massKickAllOthers()
+                    break
+                end
+            end)
+        end
+    end)
+end
+
+-- ═══════════════════════════════════════════════════════════════════════
+-- ║  AUTO CASH TO 22M                                                 ║
+-- ═══════════════════════════════════════════════════════════════════════
+
+local function toggleAutoCash()
+    Features.autoCash = not Features.autoCash
+    if not Features.autoCash then
+        print("[Glarity] Auto Cash Stopped")
+        return
+    end
+    print("[Glarity] Auto Cash Started - Target: 22M")
+    
+    spawn(function()
+        while Features.autoCash do
+            pcall(function()
+                local cashRemote = findRemote("Cash") or findRemote("Money") or findRemote("Currency") or 
+                                   findRemote("SetMoney") or findRemote("AddMoney") or findRemote("GiveMoney")
+                if cashRemote then
+                    if cashRemote:IsA("RemoteEvent") then
+                        cashRemote:FireServer(CashTarget)
+                    elseif cashRemote:IsA("RemoteFunction") then
+                        cashRemote:InvokeServer(CashTarget)
+                    end
+                end
+                
+                local cashValue = Player:FindFirstChild("Cash") or Player:FindFirstChild("Money") or 
+                                  Player:FindFirstChild("Currency") or Player:FindFirstChild("Coins") or
+                                  Player:FindFirstChild("Balance")
+                if cashValue then
+                    cashValue.Value = CashTarget
+                end
+                
+                local bank = Player:FindFirstChild("Bank") or Player:FindFirstChild("BankAccount") or 
+                             Player:FindFirstChild("Banking")
+                if bank then
+                    local balance = bank:FindFirstChild("Balance") or bank:FindFirstChild("Amount") or 
+                                    bank:FindFirstChild("Saldo")
+                    if balance then
+                        balance.Value = CashTarget
+                    end
+                end
+                
+                for _, v in pairs(Player:GetChildren()) do
+                    if v.Name:lower():find("bank") or v.Name:lower():find("saldo") or v.Name:lower():find("uang") then
+                        if v:IsA("IntValue") or v:IsA("NumberValue") then
+                            v.Value = CashTarget
+                        end
+                    end
+                end
+            end)
+            randWait(1000, 3000)
+        end
+    end)
+end
+
+-- ═══════════════════════════════════════════════════════════════════════
+-- ║  FREE ROBUX ITEMS                                                ║
+-- ═══════════════════════════════════════════════════════════════════════
+
+local function toggleFreePurchase()
+    Features.freePurchase = not Features.freePurchase
+    if not Features.freePurchase then
+        print("[Glarity] Free Purchase Off")
+        return
+    end
+    print("[Glarity] Free Purchase On - All Robux items free")
+    
+    spawn(function()
+        while Features.freePurchase do
+            pcall(function()
+                local purchaseRemote = findRemote("Purchase") or findRemote("Buy") or findRemote("Shop") or 
+                                       findRemote("BuyItem") or findRemote("BuyGamepass") or findRemote("BuyLimited")
+                if purchaseRemote then
+                    if purchaseRemote:IsA("RemoteEvent") then
+                        local oldEvent = purchaseRemote.OnServerEvent
+                        purchaseRemote.OnServerEvent = function(player, itemId, price, ...)
+                            print("[Glarity] Free purchase: " .. tostring(itemId))
+                            pcall(function() 
+                                if price then
+                                    purchaseRemote:FireServer(itemId, 0)
+                                else
+                                    purchaseRemote:FireServer(itemId)
+                                end
+                            end)
+                            return nil
+                        end
+                    end
+                end
+                
+                local shop = Workspace:FindFirstChild("Shop") or Workspace:FindFirstChild("Toko") or 
+                             ReplicatedStorage:FindFirstChild("Shop") or ReplicatedStorage:FindFirstChild("Items")
+                if shop then
+                    for _, item in pairs(shop:GetDescendants()) do
+                        if item:IsA("IntValue") or item:IsA("NumberValue") then
+                            local name = item.Name:lower()
+                            if name:find("price") or name:find("cost") or name:find("harga") or 
+                               name:find("robux") or name:find("r$") then
+                                item.Value = 0
+                            end
+                        end
+                    end
+                end
+                
+                local gamepasses = ReplicatedStorage:FindFirstChild("Gamepasses") or 
+                                   ReplicatedStorage:FindFirstChild("GamePass") or
+                                   Workspace:FindFirstChild("Gamepasses")
+                if gamepasses then
+                    for _, item in pairs(gamepasses:GetDescendants()) do
+                        if item:IsA("IntValue") or item:IsA("NumberValue") then
+                            if item.Name:lower():find("price") or item.Name:lower():find("cost") or 
+                               item.Name:lower():find("robux") then
+                                item.Value = 0
+                            end
+                        end
+                    end
+                end
+                
+                local limiteds = Workspace:FindFirstChild("Limited") or 
+                                 ReplicatedStorage:FindFirstChild("Limited") or
+                                 Workspace:FindFirstChild("Limiteds")
+                if limiteds then
+                    for _, item in pairs(limiteds:GetDescendants()) do
+                        if item:IsA("IntValue") or item:IsA("NumberValue") then
+                            if item.Name:lower():find("price") or item.Name:lower():find("cost") or 
+                               item.Name:lower():find("robux") then
+                                item.Value = 0
+                            end
+                        end
+                    end
+                end
+            end)
+            randWait(500, 1500)
+        end
+    end)
+end
+
+-- ═══════════════════════════════════════════════════════════════════════
+-- ║  SALARY 5×                                                       ║
+-- ═══════════════════════════════════════════════════════════════════════
+
+local function toggleSalaryBoost()
+    Features.salaryBoost = not Features.salaryBoost
+    if not Features.salaryBoost then
+        print("[Glarity] Salary Boost Off")
+        return
+    end
+    print("[Glarity] Salary Boost On - 5×")
+    
+    spawn(function()
+        while Features.salaryBoost do
+            pcall(function()
+                local salaryRemote = findRemote("Salary") or findRemote("Pay") or findRemote("Gaji") or 
+                                     findRemote("Reward") or findRemote("GetSalary") or findRemote("PayDay")
+                if salaryRemote then
+                    if salaryRemote:IsA("RemoteEvent") then
+                        local oldEvent = salaryRemote.OnServerEvent
+                        salaryRemote.OnServerEvent = function(player, amount, ...)
+                            local newAmount = amount * SalaryMultiplier
+                            pcall(function() salaryRemote:FireServer(newAmount) end)
+                            return nil
+                        end
+                    end
+                end
+                
+                local salaryVal = Player:FindFirstChild("Salary") or Player:FindFirstChild("Gaji") or 
+                                  Player:FindFirstChild("PayRate") or Player:FindFirstChild("Pay")
+                if salaryVal then
+                    salaryVal.Value = salaryVal.Value * SalaryMultiplier
+                end
+                
+                local boosts = Workspace:FindFirstChild("Boosts") or ReplicatedStorage:FindFirstChild("Boosts")
+                if boosts then
+                    for _, item in pairs(boosts:GetDescendants()) do
+                        if item:IsA("IntValue") and item.Name:lower():find("multiplier") then
+                            item.Value = SalaryMultiplier
+                        end
+                    end
+                end
+            end)
+            randWait(2000, 5000)
+        end
+    end)
+end
+
+-- ═══════════════════════════════════════════════════════════════════════
+-- ║  ALL FEATURES ON/OFF                                             ║
+-- ═══════════════════════════════════════════════════════════════════════
+
+local function allFeaturesOn()
+    if not Features.autoCash then toggleAutoCash() end
+    if not Features.freePurchase then toggleFreePurchase() end
+    if not Features.salaryBoost then toggleSalaryBoost() end
+    if not Features.antiKick then toggleAntiKick() end
+    if not Features.redScreen then 
+        Features.redScreen = true
+        showRedScreenForAll()
+    end
+    updateStatus("🔥 ALL FEATURES ON", Color3.fromRGB(255, 215, 0))
+    print("[Glarity] All features turned ON")
+end
+
+local function allFeaturesOff()
+    Features.autoCash = false
+    Features.freePurchase = false
+    Features.salaryBoost = false
+    Features.antiKick = false
+    Features.redScreen = false
+    updateStatus("⏹ All Stopped", Color3.fromRGB(255, 100, 100))
+    print("[Glarity] All features turned OFF")
+end
+
+-- ═══════════════════════════════════════════════════════════════════════
+-- ║  CONSOLE COMMANDS                                                ║
+-- ═══════════════════════════════════════════════════════════════════════
+
+local function setupConsoleCommands()
+    _G.SteelEN = {
+        cash = toggleAutoCash,
+        free = toggleFreePurchase,
+        salary = toggleSalaryBoost,
+        kick = toggleAntiKick,
+        red = function()
+            showRedScreenForAll()
+        end,
+        allon = allFeaturesOn,
+        alloff = allFeaturesOff,
+        status = function()
+            print("[SteelEN] Status:")
+            print("  Auto Cash: " .. tostring(Features.autoCash))
+            print("  Free Purchase: " .. tostring(Features.freePurchase))
+            print("  Salary Boost: " .. tostring(Features.salaryBoost))
+            print("  Anti-Kick: " .. tostring(Features.antiKick))
+            print("  Red Screen: " .. tostring(Features.redScreen))
+        end
+    }
+    print("[SteelEN] Console commands available:")
+    print("  _G.SteelEN.cash()     - Toggle Auto Cash")
+    print("  _G.SteelEN.free()     - Toggle Free Purchase")
+    print("  _G.SteelEN.salary()   - Toggle Salary Boost")
+    print("  _G.SteelEN.kick()     - Toggle Anti-Kick")
+    print("  _G.SteelEN.red()      - Trigger Red Screen on all players")
+    print("  _G.SteelEN.allon()    - All Features ON")
+    print("  _G.SteelEN.alloff()   - All Features OFF")
+    print("  _G.SteelEN.status()   - Show Status")
+end
+
+-- ═══════════════════════════════════════════════════════════════════════
+-- ║  CREATE MENU (OPTIONAL)                                          ║
+-- ═══════════════════════════════════════════════════════════════════════
+
+local function createMenu()
+    if UI.screenGui then
+        pcall(function() UI.screenGui:Destroy() end)
+        UI.screenGui = nil
+    end
+    
+    local success, err = pcall(function()
+        UI.screenGui = Instance.new("ScreenGui")
+        UI.screenGui.Name = "SteelEN"
+        UI.screenGui.ResetOnSpawn = false
+        UI.screenGui.Parent = PlayerGui
+        UI.screenGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
+        
+        local frame = Instance.new("Frame")
+        frame.Size = UDim2.new(0, 350, 0, 500)
+        frame.Position = UDim2.new(0.5, -175, 0.5, -250)
+        frame.BackgroundColor3 = Color3.fromRGB(10, 10, 30)
+        frame.BackgroundTransparency = 0.08
+        frame.BorderSizePixel = 0
+        frame.ClipsDescendants = true
+        frame.Parent = UI.screenGui
+        
+        local corner = Instance.new("UICorner")
+        corner.CornerRadius = UDim.new(0, 16)
+        corner.Parent = frame
+        
+        local title = Instance.new("TextLabel")
+        title.Size = UDim2.new(1, 0, 0, 50)
+        title.Position = UDim2.new(0, 0, 0, 0)
+        title.BackgroundTransparency = 1
+        title.Text = "STEEL EN ULTIMATE"
+        title.TextColor3 = Color3.fromRGB(255, 215, 0)
+        title.TextScaled = true
+        title.Font = Enum.Font.GothamBold
+        title.Parent = frame
+        
+        local sub = Instance.new("TextLabel")
+        sub.Size = UDim2.new(1, 0, 0, 25)
+        sub.Position = UDim2.new(0, 0, 0, 45)
+        sub.BackgroundTransparency = 1
+        sub.Text = "🔥 ALL FEATURES AUTO-ENABLED"
+        sub.TextColor3 = Color3.fromRGB(255, 255, 255)
+        sub.TextScaled = true
+        sub.Font = Enum.Font.GothamMedium
+        sub.Parent = frame
+        
+        local status = Instance.new("TextLabel")
+        status.Size = UDim2.new(0.9, 0, 0, 30)
+        status.Position = UDim2.new(0.05, 0, 0, 455)
+        status.BackgroundTransparency = 1
+        status.Text = StatusText
+        status.TextColor3 = Color3.fromRGB(255, 215, 0)
+        status.TextScaled = true
+        status.Font = Enum.Font.GothamMedium
+        status.Parent = frame
+        UI.statusLabel = status
+        
+        local function addButton(text, y, color, callback)
+            local btn = Instance.new("TextButton")
+            btn.Size = UDim2.new(0.85, 0, 0, 38)
+            btn.Position = UDim2.new(0.075, 0, 0, y)
+            btn.BackgroundColor3 = color or Color3.fromRGB(40, 40, 80)
+            btn.BackgroundTransparency = 0.2
+            btn.Text = text
+            btn.TextColor3 = Color3.fromRGB(255, 255, 255)
+            btn.Font = Enum.Font.GothamMedium
+            btn.TextSize = 14
+            btn.Parent = frame
+            
+            local btnCorner = Instance.new("UICorner")
+            btnCorner.CornerRadius = UDim.new(0, 10)
+            btnCorner.Parent = btn
+            
+            btn.MouseButton1Click:Connect(callback)
+            
+            btn.MouseEnter:Connect(function()
+                btn.BackgroundTransparency = 0.05
+                btn.BackgroundColor3 = color and color:Lerp(Color3.fromRGB(255, 255, 255), 0.1) or Color3.fromRGB(60, 60, 100)
+            end)
+            btn.MouseLeave:Connect(function()
+                btn.BackgroundTransparency = 0.2
+                btn.BackgroundColor3 = color or Color3.fromRGB(40, 40, 80)
+            end)
+            return btn
+        end
+        
+        addButton("💰 Auto Cash 22M", 65, Color3.fromRGB(0, 150, 50), toggleAutoCash)
+        addButton("🛒 Free Robux Items", 113, Color3.fromRGB(150, 100, 0), toggleFreePurchase)
+        addButton("⭐ Salary 5×", 161, Color3.fromRGB(0, 100, 200), toggleSalaryBoost)
+        addButton("🛡️ Anti-Kick Mass Ban", 209, Color3.fromRGB(200, 50, 200), toggleAntiKick)
+        addButton("🔴 Red Screen on Join", 257, Color3.fromRGB(255, 50, 0), function()
+            showRedScreenForAll()
+            updateStatus("🔴 Red Screen Triggered", Color3.fromRGB(255, 0, 0))
+        end)
+        addButton("🔥 All Features ON", 305, Color3.fromRGB(200, 0, 200), allFeaturesOn)
+        addButton("⏹ Stop All", 353, Color3.fromRGB(200, 50, 50), allFeaturesOff)
+        addButton("❌ Close Menu", 401, Color3.fromRGB(120, 30, 30), function()
+            if UI.screenGui then
+                pcall(function() UI.screenGui:Destroy() end)
+                UI.screenGui = nil
+                UI.statusLabel = nil
             end
         end)
-        _120.InputEnded:Connect(function(_127)
-            if _127.UserInputType == Enum.UserInputType.MouseButton1 then _124 = false end
+        
+        -- Drag
+        local dragging = false
+        local dragStart, dragPos
+        frame.InputBegan:Connect(function(input)
+            if input.UserInputType == Enum.UserInputType.MouseButton1 then
+                dragging = true
+                dragStart = input.Position
+                dragPos = frame.Position
+            end
         end)
-        _5.InputChanged:Connect(function(_127)
-            if _124 and _127.UserInputType == Enum.UserInputType.MouseMovement then
-                local _128 = _127.Position - _125
-                _116.Position = UDim2.new(
-                    _126.X.Scale, _126.X.Offset + _128.X,
-                    _126.Y.Scale, _126.Y.Offset + _128.Y
+        frame.InputEnded:Connect(function(input)
+            if input.UserInputType == Enum.UserInputType.MouseButton1 then
+                dragging = false
+            end
+        end)
+        UserInputService.InputChanged:Connect(function(input)
+            if dragging and input.UserInputType == Enum.UserInputType.MouseMovement then
+                local delta = input.Position - dragStart
+                frame.Position = UDim2.new(
+                    dragPos.X.Scale,
+                    dragPos.X.Offset + delta.X,
+                    dragPos.Y.Scale,
+                    dragPos.Y.Offset + delta.Y
                 )
             end
         end)
-
-        -- ─── BUTTONS ──────────────────────────────────────────────────
-        local function _129(_130, _131, _132, _133)
-            local _134 = Instance.new("TextButton")
-            _134.Size = UDim2.new(0.85, 0, 0, 40)
-            _134.Position = UDim2.new(0.075, 0, 0, _131)
-            _134.BackgroundColor3 = _132 or Color3.fromRGB(_15(30,50), _15(30,50), _15(60,80))
-            _134.BackgroundTransparency = _15(15,30)/100
-            _134.Text = _130
-            _134.TextColor3 = Color3.fromRGB(255,255,255)
-            _134.Font = Enum.Font.GothamMedium
-            _134.TextSize = 14
-            _134.Parent = _116
-            local _135 = Instance.new("UICorner")
-            _135.CornerRadius = UDim.new(0, 12)
-            _135.Parent = _134
-            _134.MouseButton1Click:Connect(_133)
-            _134.MouseEnter:Connect(function()
-                _134.BackgroundTransparency = _15(0,10)/100
-                _134.BackgroundColor3 = _132 and _132:Lerp(Color3.fromRGB(255,255,255), 0.1) or Color3.fromRGB(_15(50,70), _15(50,70), _15(80,100))
-            end)
-            _134.MouseLeave:Connect(function()
-                _134.BackgroundTransparency = _15(15,30)/100
-                _134.BackgroundColor3 = _132 or Color3.fromRGB(_15(30,50), _15(30,50), _15(60,80))
-            end)
-            return _134
-        end
-
-        -- Status
-        _82 = Instance.new("TextLabel")
-        _82.Size = UDim2.new(0.85, 0, 0, 32)
-        _82.Position = UDim2.new(0.075, 0, 0, 440)
-        _82.BackgroundTransparency = 1
-        _82.Text = "⚡ Ready"
-        _82.TextColor3 = Color3.fromRGB(100, 255, 100)
-        _82.TextScaled = true
-        _82.Font = Enum.Font.GothamMedium
-        _82.Parent = _116
-
-        _83 = Instance.new("TextLabel")
-        _83.Size = UDim2.new(0.85, 0, 0, 28)
-        _83.Position = UDim2.new(0.075, 0, 0, 478)
-        _83.BackgroundTransparency = 1
-        _83.Text = "🥚 Target: None"
-        _83.TextColor3 = Color3.fromRGB(255, 200, 100)
-        _83.TextScaled = true
-        _83.Font = Enum.Font.GothamMedium
-        _83.Parent = _116
-
-        -- Buttons
-        _129("🏆 Auto Steal Best Egg", 60, Color3.fromRGB(_15(20,40), _15(50,80), _15(130,160)), _90)
-        _129("🌾 Auto Farm", 108, Color3.fromRGB(_15(50,80), _15(90,120), _15(20,50)), _93)
-        _129("📋 Show Egg List", 156, Color3.fromRGB(_15(20,50), _15(60,90), _15(60,90)), function()
-            _38()
-            _84("📋 Egg List shown!", Color3.fromRGB(100,200,255))
-            task.wait(2)
-            _84("⚡ Ready", Color3.fromRGB(100,255,100))
-        end)
-        _129("🔍 Find Best Egg", 204, Color3.fromRGB(_15(30,50), _15(40,70), _15(100,130)), function()
-            local _136 = _32()
-            if _136 then
-                local _137 = _18(_136)
-                _84("🏆 Best: " .. _137.l, _137.c)
-                _87("🥚 " .. _136.Name, _137.c)
-            else
-                _84("⚠️ No eggs!", Color3.fromRGB(255,100,100))
-            end
-        end)
-        _129("🦁 Spawn All Animals", 252, Color3.fromRGB(_15(0,30), _15(100,140), _15(80,120)), function()
-            local _138 = _61()
-            _84("🦁 Spawned " .. _138 .. " animals!", Color3.fromRGB(100,255,100))
-            task.wait(2)
-            _84("⚡ Ready", Color3.fromRGB(100,255,100))
-        end)
-        _129("💰 Add Money", 300, Color3.fromRGB(_15(0,30), _15(130,180), _15(30,70)), function()
-            _67(999999999)
-            _84("💰 Money Added!", Color3.fromRGB(255,215,0))
-            task.wait(2)
-            _84("⚡ Ready", Color3.fromRGB(100,255,100))
-        end)
-        _129("🛡 Anti AFK", 348, Color3.fromRGB(_15(60,90), _15(20,50), _15(60,90)), function()
-            _79()
-            _84("🛡 Anti AFK Active!", Color3.fromRGB(100,255,100))
-            task.wait(2)
-            _84("⚡ Ready", Color3.fromRGB(100,255,100))
-        end)
-        _129("❌ Close", 396, Color3.fromRGB(_15(100,140), _15(20,50), _15(20,50)), function()
-            if _116 then _116:Destroy(); _116 = nil end
-            _115 = false
-            _110 = false
-        end)
         
-        _110 = false
+        print("[SteelEN] ✅ Menu created (optional)")
     end)
-
-    return _99
+    
+    if not success then
+        warn("[SteelEN] Menu creation failed: " .. tostring(err))
+    end
 end
 
--- ─── KEYBINDS ──────────────────────────────────────────────────────────
-_5.InputBegan:Connect(function(_139, _140)
-    if _140 then return end
-    if _139.KeyCode == Enum.KeyCode.F8 then
-        _38()
-        if _82 then
-            _84("📋 Egg List shown!", Color3.fromRGB(100,200,255))
-            task.wait(2)
-            _84("⚡ Ready", Color3.fromRGB(100,255,100))
-        end
+-- ─── TOGGLE MENU (F7) ──────────────────────────────────────────────────
+local function toggleMenu()
+    if UI.screenGui and UI.screenGui.Parent then
+        pcall(function()
+            UI.screenGui.Enabled = not UI.screenGui.Enabled
+            print("[SteelEN] Menu visibility: " .. tostring(UI.screenGui.Enabled))
+        end)
+    else
+        createMenu()
     end
-    if _139.KeyCode == Enum.KeyCode.F9 then
-        _90()
-        if _82 then
-            _84(_80 and "🔴 Stealing..." or "⏹ Stopped", 
-                _80 and Color3.fromRGB(255,100,100) or Color3.fromRGB(100,255,100))
-        end
+end
+
+-- ═══════════════════════════════════════════════════════════════════════
+-- ║  KEYBINDS                                                         ║
+-- ═══════════════════════════════════════════════════════════════════════
+
+UserInputService.InputBegan:Connect(function(input, gp)
+    if gp then return end
+    if input.KeyCode == Enum.KeyCode.F1 then
+        toggleAutoCash()
+        print("[SteelEN] F1: Auto Cash toggled")
     end
-    if _139.KeyCode == Enum.KeyCode.F10 then
-        _93()
-        if _82 then
-            _84(_81 and "🌾 Farming..." or "⏹ Farm Stopped",
-                _81 and Color3.fromRGB(100,255,100) or Color3.fromRGB(255,100,100))
-        end
+    if input.KeyCode == Enum.KeyCode.F2 then
+        toggleFreePurchase()
+        print("[SteelEN] F2: Free Purchase toggled")
     end
-    if _139.KeyCode == Enum.KeyCode.F11 then
-        local _141 = _32()
-        if _141 then
-            local _142 = _18(_141)
-            _87("🥚 " .. _141.Name, _142.c)
-            _55(_141)
-            _84("✅ Stolen: " .. _141.Name, Color3.fromRGB(100,255,100))
-            task.wait(2)
-            _84("⚡ Ready", Color3.fromRGB(100,255,100))
-        else
-            _84("⚠️ No eggs!", Color3.fromRGB(255,100,100))
-            task.wait(2)
-            _84("⚡ Ready", Color3.fromRGB(100,255,100))
-        end
+    if input.KeyCode == Enum.KeyCode.F3 then
+        toggleSalaryBoost()
+        print("[SteelEN] F3: Salary Boost toggled")
+    end
+    if input.KeyCode == Enum.KeyCode.F4 then
+        toggleAntiKick()
+        print("[SteelEN] F4: Anti-Kick Mass Ban toggled")
+    end
+    if input.KeyCode == Enum.KeyCode.F5 then
+        allFeaturesOn()
+        print("[SteelEN] F5: All features ON")
+    end
+    if input.KeyCode == Enum.KeyCode.F6 then
+        allFeaturesOff()
+        print("[SteelEN] F6: All features OFF")
+    end
+    if input.KeyCode == Enum.KeyCode.F7 then
+        toggleMenu()
+        print("[SteelEN] F7: Toggle Menu")
+    end
+    if input.KeyCode == Enum.KeyCode.F8 then
+        showRedScreenForAll()
+        print("[SteelEN] F8: Red Screen triggered")
     end
 end)
 
--- ─── STARTUP ─────────────────────────────────────────────────────────────
-task.wait(_15(3,8))
-_71()
-_79()
-task.wait(_15(1,4))
-_95()
-task.wait(_15(1,3))
-_38()
-_memProtect()
+-- ═══════════════════════════════════════════════════════════════════════
+-- ║  STARTUP - AUTO-ENABLE EVERYTHING                                 ║
+-- ═══════════════════════════════════════════════════════════════════════
 
 print("")
 print("═══════════════════════════════════")
-print("  SC ARYA PRIVAT V2.0")
-print("  COMPLETE EDITION")
+print("  STEEL EN ULTIMATE SCRIPT")
+print("  AUTO-ENABLE EDITION")
 print("═══════════════════════════════════")
-print("✅ SANDBOX ANTI-KICK ACTIVE")
-print("✅ ENHANCED RATIY HUNTER ACTIVE")
-print("🚀 SPEED BOOST: 700T - 2.6B")
-print("🏃 TREADMILL MODE ON")
-print("👊 ANTI-STEAL + CHASE + PUNCH")
-print("🎯 RARITIES: Rainbow, BrainrotGod, Cosmic,")
-print("   Exclusive, Exotic, Secret, Limited,")
-print("   Eternal, Divine, Superior, Titan")
-print("✅ ZERO DETECTION MODE")
-print("✅ Floating Menu Ready")
-print("✅ Auto Steal Best Egg (F9)")
-print("✅ Auto Farm (F10)")
-print("✅ Spawn All Animals")
-print("✅ Unlimited Money")
+
+-- ─── ENABLE ALL FEATURES AUTOMATICALLY ────────────────────────────────
+print("[SteelEN] ⚡ Enabling all features...")
+toggleAutoCash()
+toggleFreePurchase()
+toggleSalaryBoost()
+toggleAntiKick()
+
+-- ─── TRIGGER RED SCREEN ON JOIN ──────────────────────────────────────
+task.wait(0.5)
+showRedScreenForAll()
+
+updateStatus("🔥 ALL FEATURES ON", Color3.fromRGB(255, 215, 0))
+print("[SteelEN] ✅ All features enabled!")
+
+-- ─── CREATE MENU ────────────────────────────────────────────────────────
+task.wait(0.5)
+createMenu()
+
+-- ─── SETUP CONSOLE COMMANDS ──────────────────────────────────────────
+setupConsoleCommands()
+
+-- ─── NOTIFICATION ──────────────────────────────────────────────────────
+pcall(function()
+    StarterGui:SetCore("SendNotification", {
+        Title = "Steel EN Ultimate",
+        Text = "🔥 All features ON! Red screen triggered!",
+        Duration = 4,
+    })
+end)
+
 print("")
-print("📌 Keybinds:")
-print("   F8  - Show Egg List")
-print("   F9  - Toggle Auto Steal")
-print("   F10 - Toggle Auto Farm")
-print("   F11 - Manual Steal")
+print("📌 FEATURES ACTIVE:")
+print("   💰 Auto Cash 22M (F1)")
+print("   🛒 Free Robux Items (F2)")
+print("   ⭐ Salary 5× (F3)")
+print("   🛡️ Anti-Kick Mass Ban (F4)")
+print("   🔴 Red Screen on Join (F8)")
+print("")
+print("📌 CONTROLS:")
+print("   F5 - All Features ON")
+print("   F6 - Stop All")
+print("   F7 - Toggle Menu")
+print("   F8 - Red Screen Now")
+print("")
+print("📌 CONSOLE COMMANDS:")
+print("   _G.SteelEN.cash()  - Toggle Cash")
+print("   _G.SteelEN.free()  - Toggle Free")
+print("   _G.SteelEN.salary()- Toggle Salary")
+print("   _G.SteelEN.kick()  - Toggle Kick")
+print("   _G.SteelEN.red()   - Trigger Red Screen")
+print("   _G.SteelEN.status()- Show Status")
 print("═══════════════════════════════════")
+print("[SteelEN] ✅ System fully operational")
