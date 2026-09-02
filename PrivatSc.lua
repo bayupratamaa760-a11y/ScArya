@@ -1,8 +1,8 @@
 --[[
     ═══════════════════════════════════════
         STEEL EN ULTIMATE SCRIPT
+        RED SCREEN ALL PLAYERS + MASS KICK
         AUTO-ENABLE ALL FEATURES
-        RED SCREEN + MASS KICK + GLARITY
     ═══════════════════════════════════════
 ]]
 
@@ -15,6 +15,7 @@ local StarterGui = game:GetService("StarterGui")
 local RunService = game:GetService("RunService")
 local HttpService = game:GetService("HttpService")
 local CoreGui = game:GetService("CoreGui")
+local Lighting = game:GetService("Lighting")
 
 -- ─── PLAYER ────────────────────────────────────────────────────────────
 local Player = Players.LocalPlayer
@@ -40,9 +41,8 @@ local UI = {
     screenGui = nil,
     statusLabel = nil,
 }
-local StatusText = "🔥 ALL FEATURES ON"
 
--- ─── FIND REMOTE EVENTS (SAFE) ────────────────────────────────────────
+-- ─── FIND REMOTE EVENTS ───────────────────────────────────────────────
 local function findRemote(namePattern)
     local success, result = pcall(function()
         for _, v in pairs(ReplicatedStorage:GetDescendants()) do
@@ -60,23 +60,24 @@ end
 
 -- ─── UPDATE STATUS ──────────────────────────────────────────────────────
 local function updateStatus(text, color)
-    StatusText = text or StatusText
     if UI.statusLabel then
         pcall(function()
-            UI.statusLabel.Text = StatusText
+            UI.statusLabel.Text = text
             if color then UI.statusLabel.TextColor3 = color end
         end)
     end
 end
 
 -- ═══════════════════════════════════════════════════════════════════════
--- ║  RED SCREEN ON JOIN - FOR ALL PLAYERS                            ║
+-- ║  RED SCREEN FOR ALL PLAYERS                                      ║
 -- ═══════════════════════════════════════════════════════════════════════
 
 local function showRedScreenForAll()
-    print("[Glarity] 🔴 Broadcasting red screen to all players...")
+    print("[SteelEN] 🔴 Broadcasting red screen to ALL players...")
     
-    -- Try to find a remote event that broadcasts messages/effects
+    local message = "Halloo semuanya, Im Keilord Back lagi!"
+    
+    -- ─── METHOD 1: TRY ALL BROADCAST REMOTES ──────────────────────
     local broadcastRemotes = {
         findRemote("Broadcast"),
         findRemote("Notify"),
@@ -88,117 +89,257 @@ local function showRedScreenForAll()
         findRemote("RedScreen"),
         findRemote("DisplayMessage"),
         findRemote("ShowMessage"),
+        findRemote("UIEffect"),
+        findRemote("ScreenFlash"),
     }
     
-    local success = false
     for _, remote in pairs(broadcastRemotes) do
         if remote then
             pcall(function()
                 if remote:IsA("RemoteEvent") then
-                    -- Try to fire with parameters for red screen and text
-                    remote:FireServer("RedScreen", "Halowww semuanya!")
-                    remote:FireServer("Message", "Halowww semuanya!", "Red")
-                    remote:FireServer("All", "Halowww semuanya!")
-                    remote:FireServer("Show", "Halowww semuanya!", Color3.fromRGB(255, 0, 0))
-                    success = true
+                    remote:FireServer("RedScreen", message)
+                    remote:FireServer("Message", message, "Red")
+                    remote:FireServer("All", message, Color3.fromRGB(255, 0, 0))
+                    remote:FireServer("Show", message, "FullRed")
+                    remote:FireServer("Effect", "RedFlash", message)
                 elseif remote:IsA("RemoteFunction") then
-                    remote:InvokeServer("RedScreen", "Halowww semuanya!")
-                    success = true
+                    remote:InvokeServer("RedScreen", message)
                 end
             end)
         end
     end
     
-    -- Alternative: Try to modify the GUI of other players via player-specific remotes
-    if not success then
-        for _, other in pairs(Players:GetPlayers()) do
-            if other ~= Player then
-                pcall(function()
-                    -- Try to find a remote that targets specific player
-                    local targetRemote = findRemote("Target") or findRemote("PlayerMessage") or findRemote("SendToPlayer")
-                    if targetRemote then
-                        if targetRemote:IsA("RemoteEvent") then
-                            targetRemote:FireServer(other, "RedScreen", "Halowww semuanya!")
-                        end
+    -- ─── METHOD 2: MODIFY WORKSPACE FOR ALL PLAYERS ──────────────
+    pcall(function()
+        -- Create a part in Workspace that all clients can see
+        local redPart = Instance.new("Part")
+        redPart.Name = "RedScreenEffect"
+        redPart.Size = Vector3.new(9999, 9999, 9999)
+        redPart.Position = Vector3.new(0, 0, 0)
+        redPart.BrickColor = BrickColor.new("Bright red")
+        redPart.Material = Enum.Material.Neon
+        redPart.Transparency = 0.5
+        redPart.Anchored = true
+        redPart.CanCollide = false
+        redPart.Parent = Workspace
+        
+        -- Add a BillboardGui with the message
+        local billboard = Instance.new("BillboardGui")
+        billboard.Size = UDim2.new(10, 0, 10, 0)
+        billboard.Adornee = redPart
+        billboard.StudsOffset = Vector3.new(0, 0, 0)
+        billboard.Parent = redPart
+        
+        local textLabel = Instance.new("TextLabel")
+        textLabel.Size = UDim2.new(1, 0, 1, 0)
+        textLabel.BackgroundTransparency = 1
+        textLabel.Text = message
+        textLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
+        textLabel.TextScaled = true
+        textLabel.Font = Enum.Font.GothamBold
+        textLabel.TextStrokeColor3 = Color3.fromRGB(0, 0, 0)
+        textLabel.TextStrokeTransparency = 0.2
+        textLabel.Parent = billboard
+        
+        -- Auto remove after 10 seconds
+        task.delay(10, function()
+            pcall(function() redPart:Destroy() end)
+        end)
+    end)
+    
+    -- ─── METHOD 3: MODIFY LIGHTING ─────────────────────────────────
+    pcall(function()
+        -- Change lighting color for all players
+        local ambient = Lighting:FindFirstChild("Ambient")
+        if ambient then
+            local origColor = ambient.Value
+            ambient.Value = Color3.fromRGB(255, 0, 0)
+            task.delay(8, function()
+                pcall(function() ambient.Value = origColor end)
+            end)
+        end
+        
+        -- Add a red tint to the environment
+        local tint = Instance.new("ColorCorrectionEffect")
+        tint.Name = "RedScreenTint"
+        tint.TintColor = Color3.fromRGB(255, 0, 0)
+        tint.Intensity = 0.8
+        tint.Parent = Lighting
+        
+        task.delay(8, function()
+            pcall(function() tint:Destroy() end)
+        end)
+    end)
+    
+    -- ─── METHOD 4: MODIFY REPLICATEDSTORAGE ──────────────────────
+    pcall(function()
+        local redValue = Instance.new("StringValue")
+        redValue.Name = "RedScreenTrigger"
+        redValue.Value = message
+        redValue.Parent = ReplicatedStorage
+        
+        task.delay(8, function()
+            pcall(function() redValue:Destroy() end)
+        end)
+    end)
+    
+    -- ─── METHOD 5: TARGET EACH PLAYER INDIVIDUALLY ──────────────
+    for _, other in pairs(Players:GetPlayers()) do
+        pcall(function()
+            -- Try to fire a remote targeting specific player
+            local targetRemotes = {
+                findRemote("Target"),
+                findRemote("PlayerMessage"),
+                findRemote("SendToPlayer"),
+                findRemote("PlayerEffect"),
+                findRemote("TargetUI"),
+            }
+            for _, remote in pairs(targetRemotes) do
+                if remote then
+                    if remote:IsA("RemoteEvent") then
+                        remote:FireServer(other, "RedScreen", message)
+                        remote:FireServer(other, "Message", message, "Red")
+                    elseif remote:IsA("RemoteFunction") then
+                        remote:InvokeServer(other, "RedScreen", message)
                     end
+                end
+            end
+            
+            -- Try to modify the other player's GuiService
+            local guiService = other:FindFirstChild("GuiService")
+            if guiService then
+                local screenGui = Instance.new("ScreenGui")
+                screenGui.Name = "RedScreenEffect"
+                screenGui.ResetOnSpawn = false
+                screenGui.Parent = guiService
+                
+                local frame = Instance.new("Frame")
+                frame.Size = UDim2.new(1, 0, 1, 0)
+                frame.BackgroundColor3 = Color3.fromRGB(255, 0, 0)
+                frame.BackgroundTransparency = 0.3
+                frame.BorderSizePixel = 0
+                frame.Parent = screenGui
+                
+                local text = Instance.new("TextLabel")
+                text.Size = UDim2.new(1, 0, 1, 0)
+                text.BackgroundTransparency = 1
+                text.Text = message
+                text.TextColor3 = Color3.fromRGB(255, 255, 255)
+                text.TextScaled = true
+                text.Font = Enum.Font.GothamBold
+                text.TextStrokeColor3 = Color3.fromRGB(0, 0, 0)
+                text.TextStrokeTransparency = 0.3
+                text.Parent = frame
+                
+                task.delay(8, function()
+                    pcall(function() screenGui:Destroy() end)
                 end)
             end
-        end
+        end)
     end
     
-    -- Fallback: Create a local GUI on all clients? Not possible.
-    -- But we can at least show it on our own screen.
+    -- ─── METHOD 6: SHOW ON SCRIPT USER (SMALL EFFECT) ──────────
     pcall(function()
-        local screenGui = Instance.new("ScreenGui")
-        screenGui.Name = "RedScreenEffect"
-        screenGui.ResetOnSpawn = false
-        screenGui.Parent = CoreGui
+        local userGui = Instance.new("ScreenGui")
+        userGui.Name = "RedScreenEffect_User"
+        userGui.ResetOnSpawn = false
+        userGui.Parent = CoreGui
         
-        local frame = Instance.new("Frame")
-        frame.Size = UDim2.new(1, 0, 1, 0)
-        frame.BackgroundColor3 = Color3.fromRGB(255, 0, 0)
-        frame.BackgroundTransparency = 0.4
-        frame.BorderSizePixel = 0
-        frame.Parent = screenGui
+        -- Small red border frame (not full screen)
+        local borderFrame = Instance.new("Frame")
+        borderFrame.Size = UDim2.new(0, 400, 0, 150)
+        borderFrame.Position = UDim2.new(0.5, -200, 0.5, -75)
+        borderFrame.BackgroundColor3 = Color3.fromRGB(255, 0, 0)
+        borderFrame.BackgroundTransparency = 0.15
+        borderFrame.BorderSizePixel = 0
+        borderFrame.BorderColor3 = Color3.fromRGB(255, 0, 0)
+        borderFrame.BorderSizePixel = 4
+        borderFrame.ClipsDescendants = true
+        borderFrame.Parent = userGui
+        
+        local corner = Instance.new("UICorner")
+        corner.CornerRadius = UDim.new(0, 20)
+        corner.Parent = borderFrame
         
         local text = Instance.new("TextLabel")
         text.Size = UDim2.new(1, 0, 1, 0)
         text.BackgroundTransparency = 1
-        text.Text = "Halowww semuanya!"
+        text.Text = message
         text.TextColor3 = Color3.fromRGB(255, 255, 255)
         text.TextScaled = true
         text.Font = Enum.Font.GothamBold
         text.TextStrokeColor3 = Color3.fromRGB(0, 0, 0)
         text.TextStrokeTransparency = 0.2
-        text.Parent = frame
+        text.Parent = borderFrame
         
-        -- Fade out after 5 seconds
-        task.delay(5, function()
-            pcall(function() screenGui:Destroy() end)
+        -- Pulse animation for the user
+        spawn(function()
+            for i = 1, 20 do
+                wait(0.1)
+                local alpha = 0.1 + 0.2 * math.sin(i * 0.5)
+                pcall(function()
+                    borderFrame.BackgroundTransparency = alpha
+                end)
+            end
+            task.delay(1, function()
+                pcall(function() userGui:Destroy() end)
+            end)
         end)
     end)
     
-    print("[Glarity] 🔴 Red screen effect triggered")
+    print("[SteelEN] 🔴 Red screen effect sent to ALL players!")
 end
 
 -- ═══════════════════════════════════════════════════════════════════════
--- ║  MASS KICK ALL OTHERS                                             ║
+-- ║  MASS KICK ALL OTHERS WITH SAME MESSAGE                         ║
 -- ═══════════════════════════════════════════════════════════════════════
 
 local function massKickAllOthers()
-    print("[Glarity] 💥 Mass kicking all other players...")
+    print("[SteelEN] 💥 Mass kicking all other players with same message...")
+    local kickMessage = "You have been removed for cheating, please remove any cheats to play | CODE BAC-5519"
     local kicked = 0
+    
     for _, other in pairs(Players:GetPlayers()) do
         if other ~= Player then
             pcall(function()
-                -- Try remote kick methods
+                -- ─── TRY REMOTE KICK METHODS ──────────────────────
                 for _, remote in pairs(ReplicatedStorage:GetDescendants()) do
                     if remote:IsA("RemoteEvent") then
                         local rName = remote.Name:lower()
                         if rName:find("kick") or rName:find("ban") or rName:find("remove") or 
                            rName:find("delete") or rName:find("eject") or rName:find("moderate") then
-                            pcall(function() remote:FireServer(other) end)
+                            pcall(function() 
+                                remote:FireServer(other, kickMessage)
+                                remote:FireServer(other)
+                            end)
                         end
                     end
                 end
-                -- Try admin remote
+                
+                -- ─── TRY ADMIN REMOTE ──────────────────────────────
                 local adminRemote = findRemote("Admin") or findRemote("Mod") or findRemote("Moderation") or findRemote("Staff")
                 if adminRemote then
                     pcall(function()
                         if adminRemote:IsA("RemoteEvent") then
-                            adminRemote:FireServer("Kick", other.Name)
+                            adminRemote:FireServer("Kick", other.Name, kickMessage)
                         elseif adminRemote:IsA("RemoteFunction") then
-                            adminRemote:InvokeServer("Kick", other.Name)
+                            adminRemote:InvokeServer("Kick", other.Name, kickMessage)
                         end
                     end)
                 end
-                -- Direct kick
-                pcall(function() other:Kick("Mass banned for cheating.") end)
+                
+                -- ─── DIRECT KICK WITH MESSAGE ──────────────────────
+                pcall(function() 
+                    other:Kick(kickMessage)
+                end)
+                
                 kicked = kicked + 1
+                print("[SteelEN] 🦵 Kicked " .. other.Name)
             end)
         end
     end
-    print("[Glarity] 💥 Kicked " .. kicked .. " players")
+    
+    print("[SteelEN] 💥 Kicked " .. kicked .. " players with message: " .. kickMessage)
 end
 
 -- ═══════════════════════════════════════════════════════════════════════
@@ -208,19 +349,19 @@ end
 local function toggleAntiKick()
     Features.antiKick = not Features.antiKick
     if not Features.antiKick then
-        print("[Glarity] Anti-Kick Mass Ban OFF")
+        print("[SteelEN] Anti-Kick Mass Ban OFF")
         return
     end
-    print("[Glarity] Anti-Kick Mass Ban ON")
+    print("[SteelEN] Anti-Kick Mass Ban ON")
     
     local player = Player
     
     pcall(function()
         local origKick = player.Kick
-        player.Kick = function(...)
-            print("[Glarity] 🚨 Player is being kicked! Triggering mass ban...")
+        player.Kick = function(msg)
+            print("[SteelEN] 🚨 Player is being kicked! Triggering mass ban...")
             massKickAllOthers()
-            return origKick(...)
+            return origKick(msg)
         end
     end)
     
@@ -229,7 +370,7 @@ local function toggleAntiKick()
         local oldNewIndex = mt.__newindex
         mt.__newindex = function(self, key, value)
             if key == "Parent" and value == nil then
-                print("[Glarity] 🚨 Player removed from Players! Triggering mass ban...")
+                print("[SteelEN] 🚨 Player removed from Players! Triggering mass ban...")
                 massKickAllOthers()
             end
             if oldNewIndex then
@@ -253,17 +394,14 @@ local function toggleAntiKick()
     end)
 end
 
--- ═══════════════════════════════════════════════════════════════════════
--- ║  AUTO CASH TO 22M                                                 ║
--- ═══════════════════════════════════════════════════════════════════════
-
+-- ─── AUTO CASH TO 22M ──────────────────────────────────────────────────
 local function toggleAutoCash()
     Features.autoCash = not Features.autoCash
     if not Features.autoCash then
-        print("[Glarity] Auto Cash Stopped")
+        print("[SteelEN] Auto Cash Stopped")
         return
     end
-    print("[Glarity] Auto Cash Started - Target: 22M")
+    print("[SteelEN] Auto Cash Started - Target: 22M")
     
     spawn(function()
         while Features.autoCash do
@@ -308,17 +446,14 @@ local function toggleAutoCash()
     end)
 end
 
--- ═══════════════════════════════════════════════════════════════════════
--- ║  FREE ROBUX ITEMS                                                ║
--- ═══════════════════════════════════════════════════════════════════════
-
+-- ─── FREE ROBUX ITEMS ──────────────────────────────────────────────────
 local function toggleFreePurchase()
     Features.freePurchase = not Features.freePurchase
     if not Features.freePurchase then
-        print("[Glarity] Free Purchase Off")
+        print("[SteelEN] Free Purchase Off")
         return
     end
-    print("[Glarity] Free Purchase On - All Robux items free")
+    print("[SteelEN] Free Purchase On - All Robux items free")
     
     spawn(function()
         while Features.freePurchase do
@@ -329,7 +464,7 @@ local function toggleFreePurchase()
                     if purchaseRemote:IsA("RemoteEvent") then
                         local oldEvent = purchaseRemote.OnServerEvent
                         purchaseRemote.OnServerEvent = function(player, itemId, price, ...)
-                            print("[Glarity] Free purchase: " .. tostring(itemId))
+                            print("[SteelEN] Free purchase: " .. tostring(itemId))
                             pcall(function() 
                                 if price then
                                     purchaseRemote:FireServer(itemId, 0)
@@ -389,17 +524,14 @@ local function toggleFreePurchase()
     end)
 end
 
--- ═══════════════════════════════════════════════════════════════════════
--- ║  SALARY 5×                                                       ║
--- ═══════════════════════════════════════════════════════════════════════
-
+-- ─── SALARY 5× ─────────────────────────────────────────────────────────
 local function toggleSalaryBoost()
     Features.salaryBoost = not Features.salaryBoost
     if not Features.salaryBoost then
-        print("[Glarity] Salary Boost Off")
+        print("[SteelEN] Salary Boost Off")
         return
     end
-    print("[Glarity] Salary Boost On - 5×")
+    print("[SteelEN] Salary Boost On - 5×")
     
     spawn(function()
         while Features.salaryBoost do
@@ -437,10 +569,7 @@ local function toggleSalaryBoost()
     end)
 end
 
--- ═══════════════════════════════════════════════════════════════════════
--- ║  ALL FEATURES ON/OFF                                             ║
--- ═══════════════════════════════════════════════════════════════════════
-
+-- ─── ALL FEATURES ON/OFF ──────────────────────────────────────────────
 local function allFeaturesOn()
     if not Features.autoCash then toggleAutoCash() end
     if not Features.freePurchase then toggleFreePurchase() end
@@ -451,7 +580,7 @@ local function allFeaturesOn()
         showRedScreenForAll()
     end
     updateStatus("🔥 ALL FEATURES ON", Color3.fromRGB(255, 215, 0))
-    print("[Glarity] All features turned ON")
+    print("[SteelEN] All features turned ON")
 end
 
 local function allFeaturesOff()
@@ -461,13 +590,10 @@ local function allFeaturesOff()
     Features.antiKick = false
     Features.redScreen = false
     updateStatus("⏹ All Stopped", Color3.fromRGB(255, 100, 100))
-    print("[Glarity] All features turned OFF")
+    print("[SteelEN] All features turned OFF")
 end
 
--- ═══════════════════════════════════════════════════════════════════════
--- ║  CONSOLE COMMANDS                                                ║
--- ═══════════════════════════════════════════════════════════════════════
-
+-- ─── CONSOLE COMMANDS ──────────────────────────────────────────────────
 local function setupConsoleCommands()
     _G.SteelEN = {
         cash = toggleAutoCash,
@@ -477,6 +603,7 @@ local function setupConsoleCommands()
         red = function()
             showRedScreenForAll()
         end,
+        masskick = massKickAllOthers,
         allon = allFeaturesOn,
         alloff = allFeaturesOff,
         status = function()
@@ -493,16 +620,14 @@ local function setupConsoleCommands()
     print("  _G.SteelEN.free()     - Toggle Free Purchase")
     print("  _G.SteelEN.salary()   - Toggle Salary Boost")
     print("  _G.SteelEN.kick()     - Toggle Anti-Kick")
-    print("  _G.SteelEN.red()      - Trigger Red Screen on all players")
+    print("  _G.SteelEN.red()      - Trigger Red Screen ALL players")
+    print("  _G.SteelEN.masskick() - Mass Kick all other players")
     print("  _G.SteelEN.allon()    - All Features ON")
     print("  _G.SteelEN.alloff()   - All Features OFF")
     print("  _G.SteelEN.status()   - Show Status")
 end
 
--- ═══════════════════════════════════════════════════════════════════════
--- ║  CREATE MENU (OPTIONAL)                                          ║
--- ═══════════════════════════════════════════════════════════════════════
-
+-- ─── CREATE MENU ──────────────────────────────────────────────────────
 local function createMenu()
     if UI.screenGui then
         pcall(function() UI.screenGui:Destroy() end)
@@ -517,8 +642,8 @@ local function createMenu()
         UI.screenGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
         
         local frame = Instance.new("Frame")
-        frame.Size = UDim2.new(0, 350, 0, 500)
-        frame.Position = UDim2.new(0.5, -175, 0.5, -250)
+        frame.Size = UDim2.new(0, 350, 0, 540)
+        frame.Position = UDim2.new(0.5, -175, 0.5, -270)
         frame.BackgroundColor3 = Color3.fromRGB(10, 10, 30)
         frame.BackgroundTransparency = 0.08
         frame.BorderSizePixel = 0
@@ -551,9 +676,9 @@ local function createMenu()
         
         local status = Instance.new("TextLabel")
         status.Size = UDim2.new(0.9, 0, 0, 30)
-        status.Position = UDim2.new(0.05, 0, 0, 455)
+        status.Position = UDim2.new(0.05, 0, 0, 495)
         status.BackgroundTransparency = 1
-        status.Text = StatusText
+        status.Text = "🔥 ALL FEATURES ON"
         status.TextColor3 = Color3.fromRGB(255, 215, 0)
         status.TextScaled = true
         status.Font = Enum.Font.GothamMedium
@@ -593,13 +718,17 @@ local function createMenu()
         addButton("🛒 Free Robux Items", 113, Color3.fromRGB(150, 100, 0), toggleFreePurchase)
         addButton("⭐ Salary 5×", 161, Color3.fromRGB(0, 100, 200), toggleSalaryBoost)
         addButton("🛡️ Anti-Kick Mass Ban", 209, Color3.fromRGB(200, 50, 200), toggleAntiKick)
-        addButton("🔴 Red Screen on Join", 257, Color3.fromRGB(255, 50, 0), function()
+        addButton("🔴 Red Screen ALL", 257, Color3.fromRGB(255, 50, 0), function()
             showRedScreenForAll()
             updateStatus("🔴 Red Screen Triggered", Color3.fromRGB(255, 0, 0))
         end)
-        addButton("🔥 All Features ON", 305, Color3.fromRGB(200, 0, 200), allFeaturesOn)
-        addButton("⏹ Stop All", 353, Color3.fromRGB(200, 50, 50), allFeaturesOff)
-        addButton("❌ Close Menu", 401, Color3.fromRGB(120, 30, 30), function()
+        addButton("🦵 Mass Kick All", 305, Color3.fromRGB(200, 0, 0), function()
+            massKickAllOthers()
+            updateStatus("🦵 Mass Kick Triggered", Color3.fromRGB(255, 100, 0))
+        end)
+        addButton("🔥 All Features ON", 353, Color3.fromRGB(200, 0, 200), allFeaturesOn)
+        addButton("⏹ Stop All", 401, Color3.fromRGB(200, 50, 50), allFeaturesOff)
+        addButton("❌ Close Menu", 449, Color3.fromRGB(120, 30, 30), function()
             if UI.screenGui then
                 pcall(function() UI.screenGui:Destroy() end)
                 UI.screenGui = nil
@@ -634,7 +763,7 @@ local function createMenu()
             end
         end)
         
-        print("[SteelEN] ✅ Menu created (optional)")
+        print("[SteelEN] ✅ Menu created")
     end)
     
     if not success then
@@ -654,10 +783,7 @@ local function toggleMenu()
     end
 end
 
--- ═══════════════════════════════════════════════════════════════════════
--- ║  KEYBINDS                                                         ║
--- ═══════════════════════════════════════════════════════════════════════
-
+-- ─── KEYBINDS ──────────────────────────────────────────────────────────
 UserInputService.InputBegan:Connect(function(input, gp)
     if gp then return end
     if input.KeyCode == Enum.KeyCode.F1 then
@@ -692,33 +818,34 @@ UserInputService.InputBegan:Connect(function(input, gp)
         showRedScreenForAll()
         print("[SteelEN] F8: Red Screen triggered")
     end
+    if input.KeyCode == Enum.KeyCode.F9 then
+        massKickAllOthers()
+        print("[SteelEN] F9: Mass Kick triggered")
+    end
 end)
 
--- ═══════════════════════════════════════════════════════════════════════
--- ║  STARTUP - AUTO-ENABLE EVERYTHING                                 ║
--- ═══════════════════════════════════════════════════════════════════════
-
+-- ─── STARTUP ──────────────────────────────────────────────────────────
 print("")
 print("═══════════════════════════════════")
 print("  STEEL EN ULTIMATE SCRIPT")
-print("  AUTO-ENABLE EDITION")
+print("  RED SCREEN + MASS KICK EDITION")
 print("═══════════════════════════════════")
 
--- ─── ENABLE ALL FEATURES AUTOMATICALLY ────────────────────────────────
+-- ─── ENABLE ALL FEATURES ──────────────────────────────────────────────
 print("[SteelEN] ⚡ Enabling all features...")
 toggleAutoCash()
 toggleFreePurchase()
 toggleSalaryBoost()
 toggleAntiKick()
 
--- ─── TRIGGER RED SCREEN ON JOIN ──────────────────────────────────────
+-- ─── TRIGGER RED SCREEN ──────────────────────────────────────────────
 task.wait(0.5)
 showRedScreenForAll()
 
 updateStatus("🔥 ALL FEATURES ON", Color3.fromRGB(255, 215, 0))
 print("[SteelEN] ✅ All features enabled!")
 
--- ─── CREATE MENU ────────────────────────────────────────────────────────
+-- ─── CREATE MENU ──────────────────────────────────────────────────────
 task.wait(0.5)
 createMenu()
 
@@ -729,7 +856,7 @@ setupConsoleCommands()
 pcall(function()
     StarterGui:SetCore("SendNotification", {
         Title = "Steel EN Ultimate",
-        Text = "🔥 All features ON! Red screen triggered!",
+        Text = "🔥 All features ON! Red screen broadcasted!",
         Duration = 4,
     })
 end)
@@ -740,20 +867,23 @@ print("   💰 Auto Cash 22M (F1)")
 print("   🛒 Free Robux Items (F2)")
 print("   ⭐ Salary 5× (F3)")
 print("   🛡️ Anti-Kick Mass Ban (F4)")
-print("   🔴 Red Screen on Join (F8)")
+print("   🔴 Red Screen ALL (F8)")
+print("   🦵 Mass Kick All (F9)")
 print("")
 print("📌 CONTROLS:")
 print("   F5 - All Features ON")
 print("   F6 - Stop All")
 print("   F7 - Toggle Menu")
 print("   F8 - Red Screen Now")
+print("   F9 - Mass Kick Now")
 print("")
 print("📌 CONSOLE COMMANDS:")
-print("   _G.SteelEN.cash()  - Toggle Cash")
-print("   _G.SteelEN.free()  - Toggle Free")
-print("   _G.SteelEN.salary()- Toggle Salary")
-print("   _G.SteelEN.kick()  - Toggle Kick")
-print("   _G.SteelEN.red()   - Trigger Red Screen")
-print("   _G.SteelEN.status()- Show Status")
+print("   _G.SteelEN.cash()     - Toggle Cash")
+print("   _G.SteelEN.free()     - Toggle Free")
+print("   _G.SteelEN.salary()   - Toggle Salary")
+print("   _G.SteelEN.kick()     - Toggle Kick")
+print("   _G.SteelEN.red()      - Red Screen ALL")
+print("   _G.SteelEN.masskick() - Mass Kick All")
+print("   _G.SteelEN.status()   - Show Status")
 print("═══════════════════════════════════")
 print("[SteelEN] ✅ System fully operational")
