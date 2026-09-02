@@ -1,18 +1,20 @@
 --[[
     ═══════════════════════════════════════
         SC ARYA PRIVAT V1.4
-        UNDETECTABLE EDITION
+        STEALTH EDITION - FIXED
     ═══════════════════════════════════════
-    Features:
-    ✅ Floating Menu Button with Logo
-    ✅ Auto Steal Best Egg
-    ✅ Auto Farm
-    ✅ Spawn All Animals To Base
-    ✅ Unlimited Money
-    ✅ Anti-Detection
-    ✅ Anti-AFK
-    ✅ Memory Protection
 ]]
+
+-- ─── STEALTH INIT ──────────────────────────────────────────────────────
+-- Randomized delay to avoid pattern detection
+local function stealthWait()
+    local t = 0
+    while t < math.random(2, 5) do
+        t = t + math.random(1, 10) / 100
+        wait(math.random(1, 5) / 100)
+    end
+end
+stealthWait()
 
 -- ─── SERVICES ─────────────────────────────────────────────────────────────
 local Players = game:GetService("Players")
@@ -220,28 +222,74 @@ local function addMoney(amount)
     return false
 end
 
--- ─── ANTI DETECTION ─────────────────────────────────────────────────────
+-- ─── ENHANCED ANTI DETECTION ──────────────────────────────────────────
 local function antiDetection()
     local mouse = Player:GetMouse()
+    
+    -- Random mouse movements with human-like patterns
     spawn(function()
-        while wait(rand(2, 8)) do
-            if rand(1, 100) > 60 then
+        while wait(rand(1, 6)) do
+            if rand(1, 100) > 50 then
                 pcall(function()
                     local x, y = rand(100, 1800), rand(100, 900)
                     mouse.Move(x, y)
-                    wait(rand(5, 20) / 100)
-                    mouse.Move(x + rand(-50, 50), y + rand(-50, 50))
+                    wait(rand(3, 15) / 100)
+                    mouse.Move(x + rand(-40, 40), y + rand(-40, 40))
+                    wait(rand(2, 10) / 100)
+                    mouse.Move(x + rand(-20, 20), y + rand(-20, 20))
                 end)
             end
         end
     end)
+    
+    -- Random jumps with varied timing
     spawn(function()
-        while wait(rand(4, 15)) do
-            if rand(1, 100) > 70 then
+        while wait(rand(3, 18)) do
+            if rand(1, 100) > 65 then
                 pcall(function()
                     Humanoid.Jump = true
-                    wait(rand(5, 15) / 100)
+                    wait(rand(3, 12) / 100)
                     Humanoid.Jump = false
+                    wait(rand(5, 20) / 100)
+                    if rand(1, 100) > 50 then
+                        Humanoid.Jump = true
+                        wait(rand(3, 10) / 100)
+                        Humanoid.Jump = false
+                    end
+                end)
+            end
+        end
+    end)
+    
+    -- Random camera movements
+    spawn(function()
+        while wait(rand(2, 10)) do
+            if rand(1, 100) > 60 then
+                pcall(function()
+                    local camera = workspace.CurrentCamera
+                    local old = camera.CFrame
+                    camera.CFrame = camera.CFrame * CFrame.Angles(
+                        math.rad(rand(-15, 15)),
+                        math.rad(rand(-30, 30)),
+                        0
+                    )
+                    wait(rand(10, 40) / 100)
+                    camera.CFrame = old
+                end)
+            end
+        end
+    end)
+    
+    -- Random walking
+    spawn(function()
+        while wait(rand(2, 10)) do
+            if rand(1, 100) > 55 then
+                pcall(function()
+                    local dir = CFrame.Angles(0, math.rad(rand(0, 360)), 0)
+                    local move = (RootPart.CFrame * dir).LookVector * rand(2, 12)
+                    RootPart.CFrame = RootPart.CFrame + move
+                    wait(rand(5, 25) / 100)
+                    RootPart.CFrame = RootPart.CFrame - move * 0.4
                 end)
             end
         end
@@ -306,13 +354,21 @@ local function autoFarm()
     end)
 end
 
--- ─── CREATE UI ──────────────────────────────────────────────────────────
+-- ─── CREATE STEALTH UI ──────────────────────────────────────────────────
 local function createUI()
+    -- Random name for the ScreenGui to avoid detection
+    local guiName = ""
+    local chars = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"
+    for i = 1, math.random(8, 15) do
+        guiName = guiName .. chars:sub(math.random(1, #chars), math.random(1, #chars))
+    end
+    
     local sg = Instance.new("ScreenGui")
-    sg.Name = "SCARYA_V1.4"
+    sg.Name = guiName
     sg.ResetOnSpawn = false
     sg.IgnoreGuiInset = true
     sg.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
+    sg.DisplayOrder = 0
     sg.Parent = CoreGui
 
     -- ─── FLOATING BUTTON ──────────────────────────────────────────────
@@ -320,7 +376,7 @@ local function createUI()
     btnFrame.Size = UDim2.new(0, 65, 0, 65)
     btnFrame.Position = UDim2.new(0.92, 0, 0.82, 0)
     btnFrame.BackgroundColor3 = Color3.fromRGB(10, 10, 30)
-    btnFrame.BackgroundTransparency = 0.15
+    btnFrame.BackgroundTransparency = 0.2
     btnFrame.BorderSizePixel = 0
     btnFrame.ClipsDescendants = true
     btnFrame.Parent = sg
@@ -329,12 +385,12 @@ local function createUI()
     btnCorner.CornerRadius = UDim.new(1, 0)
     btnCorner.Parent = btnFrame
 
-    -- Glow
+    -- Glow (subtle)
     local glow = Instance.new("Frame")
-    glow.Size = UDim2.new(1.15, 0, 1.15, 0)
-    glow.Position = UDim2.new(-0.075, 0, -0.075, 0)
+    glow.Size = UDim2.new(1.1, 0, 1.1, 0)
+    glow.Position = UDim2.new(-0.05, 0, -0.05, 0)
     glow.BackgroundColor3 = Color3.fromRGB(30, 144, 255)
-    glow.BackgroundTransparency = 0.75
+    glow.BackgroundTransparency = 0.85
     glow.BorderSizePixel = 0
     glow.Parent = btnFrame
 
@@ -347,7 +403,7 @@ local function createUI()
     logo.Size = UDim2.new(0.7, 0, 0.7, 0)
     logo.Position = UDim2.new(0.15, 0, 0.15, 0)
     logo.BackgroundTransparency = 1
-    logo.Image = "https://files.catbox.moe/y4ru07.jpg" -- REPLACE WITH YOUR CATBOX LINK
+    logo.Image = "https://files.catbox.moe/y4ru07.jpg"
     logo.Parent = btnFrame
 
     -- Label
@@ -371,11 +427,11 @@ local function createUI()
     -- Hover
     clicker.MouseEnter:Connect(function()
         TweenService:Create(btnFrame, TweenInfo.new(0.3), {Size = UDim2.new(0, 72, 0, 72)}):Play()
-        TweenService:Create(glow, TweenInfo.new(0.3), {BackgroundTransparency = 0.4}):Play()
+        TweenService:Create(glow, TweenInfo.new(0.3), {BackgroundTransparency = 0.6}):Play()
     end)
     clicker.MouseLeave:Connect(function()
         TweenService:Create(btnFrame, TweenInfo.new(0.3), {Size = UDim2.new(0, 65, 0, 65)}):Play()
-        TweenService:Create(glow, TweenInfo.new(0.3), {BackgroundTransparency = 0.75}):Play()
+        TweenService:Create(glow, TweenInfo.new(0.3), {BackgroundTransparency = 0.85}):Play()
     end)
 
     -- ─── DRAG ──────────────────────────────────────────────────────────
@@ -428,12 +484,12 @@ local function createUI()
         mCorner.CornerRadius = UDim.new(0, 20)
         mCorner.Parent = menuFrame
 
-        -- Border glow
+        -- Border glow (subtle)
         local border = Instance.new("Frame")
         border.Size = UDim2.new(1.02, 0, 1.02, 0)
         border.Position = UDim2.new(-0.01, 0, -0.01, 0)
         border.BackgroundColor3 = Color3.fromRGB(30, 144, 255)
-        border.BackgroundTransparency = 0.85
+        border.BackgroundTransparency = 0.9
         border.BorderSizePixel = 0
         border.Parent = menuFrame
         local bCorner = Instance.new("UICorner")
@@ -444,7 +500,7 @@ local function createUI()
         local titleBar = Instance.new("Frame")
         titleBar.Size = UDim2.new(1, 0, 0, 55)
         titleBar.BackgroundColor3 = Color3.fromRGB(15, 15, 40)
-        titleBar.BackgroundTransparency = 0.1
+        titleBar.BackgroundTransparency = 0.15
         titleBar.BorderSizePixel = 0
         titleBar.Parent = menuFrame
         local tCorner = Instance.new("UICorner")
@@ -498,13 +554,13 @@ local function createUI()
             end
         end)
 
--- ─── BUTTONS ──────────────────────────────────────────────────
+        -- ─── BUTTONS ──────────────────────────────────────────────────
         local function makeBtn(text, y, color, cb)
             local b = Instance.new("TextButton")
             b.Size = UDim2.new(0.85, 0, 0, 40)
             b.Position = UDim2.new(0.075, 0, 0, y)
             b.BackgroundColor3 = color or Color3.fromRGB(40, 40, 70)
-            b.BackgroundTransparency = 0.15
+            b.BackgroundTransparency = 0.2
             b.Text = text
             b.TextColor3 = Color3.fromRGB(255, 255, 255)
             b.Font = Enum.Font.GothamMedium
@@ -519,7 +575,7 @@ local function createUI()
                 b.BackgroundColor3 = color and color:Lerp(Color3.fromRGB(255, 255, 255), 0.1) or Color3.fromRGB(60, 60, 90)
             end)
             b.MouseLeave:Connect(function()
-                b.BackgroundTransparency = 0.15
+                b.BackgroundTransparency = 0.2
                 b.BackgroundColor3 = color or Color3.fromRGB(40, 40, 70)
             end)
             return b
@@ -635,25 +691,26 @@ UserInputService.InputBegan:Connect(function(i, gp)
 end)
 
 -- ─── STARTUP ─────────────────────────────────────────────────────────────
-task.wait(2)
+task.wait(math.random(2, 5))
 antiDetection()
 antiAFK()
-task.wait(1)
+task.wait(math.random(1, 3))
 createUI()
-task.wait(1)
+task.wait(math.random(1, 2))
 showEggList()
 
 print("")
 print("═══════════════════════════════════")
 print("  SC ARYA PRIVAT V1.4")
-print("  UNDETECTABLE EDITION")
+print("  STEALTH EDITION")
 print("═══════════════════════════════════")
+print("✅ Stealth Mode Active")
 print("✅ Floating Menu Button Ready")
 print("✅ Auto Steal Best Egg (F9)")
 print("✅ Auto Farm (F10)")
 print("✅ Spawn All Animals")
 print("✅ Unlimited Money")
-print("✅ Anti-Detection Active")
+print("✅ Enhanced Anti-Detection")
 print("✅ Anti-AFK Active")
 print("")
 print("📌 Keybinds:")
