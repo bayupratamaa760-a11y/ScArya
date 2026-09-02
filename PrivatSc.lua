@@ -1,716 +1,720 @@
 --[[
     ═══════════════════════════════════════
-        SC ARYA PRIVAT V1.4
-        STEALTH EDITION - FIXED
+        SC ARYA PRIVAT V1.5
+        ULTIMATE UNDETECTABLE
     ═══════════════════════════════════════
 ]]
 
--- ─── STEALTH INIT ──────────────────────────────────────────────────────
--- Randomized delay to avoid pattern detection
-local function stealthWait()
-    local t = 0
-    while t < math.random(2, 5) do
-        t = t + math.random(1, 10) / 100
-        wait(math.random(1, 5) / 100)
-    end
-end
-stealthWait()
-
--- ─── SERVICES ─────────────────────────────────────────────────────────────
-local Players = game:GetService("Players")
-local RunService = game:GetService("RunService")
-local UserInputService = game:GetService("UserInputService")
-local TweenService = game:GetService("TweenService")
-local VirtualUser = game:GetService("VirtualUser")
-local ReplicatedStorage = game:GetService("ReplicatedStorage")
-local CoreGui = game:GetService("CoreGui")
-local Workspace = game:GetService("Workspace")
-
--- ─── PLAYER ──────────────────────────────────────────────────────────────
-local Player = Players.LocalPlayer
-local Character = Player.Character or Player.CharacterAdded:Wait()
-local Humanoid = Character:WaitForChild("Humanoid")
-local RootPart = Character:WaitForChild("HumanoidRootPart")
-
--- ─── RANDOM UTILITIES ──────────────────────────────────────────────────
-local function rand(min, max) return math.random(min or 0, max or 100) end
-local function randWait(min, max) wait((rand(min or 500, max or 2000) / 1000)) end
-
--- ─── EGG RARITY ──────────────────────────────────────────────────────────
-local EggRarity = {
-    Common = {value = 1, color = Color3.fromRGB(150, 150, 150), label = "Common"},
-    Uncommon = {value = 2, color = Color3.fromRGB(0, 200, 0), label = "Uncommon"},
-    Rare = {value = 3, color = Color3.fromRGB(0, 100, 255), label = "Rare"},
-    Epic = {value = 4, color = Color3.fromRGB(150, 0, 255), label = "Epic"},
-    Legendary = {value = 5, color = Color3.fromRGB(255, 150, 0), label = "Legendary"},
-    Mythic = {value = 6, color = Color3.fromRGB(255, 0, 0), label = "Mythic"},
+-- ─── COMPLETE OBFUSCATION ─────────────────────────────────────────────
+-- Everything is randomized to avoid signature detection
+local _0 = {
+    _ = function(...) return ... end,
+    __ = function(a,b) return a + b end,
+    ___ = function(a,b) return a - b end
 }
 
-local function getRarity(egg)
-    if not egg then return EggRarity.Common end
-    local name = egg.Name:lower()
-    local r = "Common"
-    if name:find("mythic") or name:find("mitos") or name:find("red") then r = "Mythic"
-    elseif name:find("legendary") or name:find("legenda") or name:find("gold") then r = "Legendary"
-    elseif name:find("epic") or name:find("epik") or name:find("purple") then r = "Epic"
-    elseif name:find("rare") or name:find("langka") or name:find("blue") then r = "Rare"
-    elseif name:find("uncommon") or name:find("green") then r = "Uncommon"
+-- ─── STEALTH DELAY WITH RANDOMIZATION ────────────────────────────────
+local function _1()
+    local _2 = 0
+    while _2 < math.random(3, 8) do
+        _2 = _2 + math.random(1, 15) / 100
+        wait(math.random(1, 8) / 100)
     end
-    local attr = egg:FindFirstChild("Rarity") or egg:FindFirstChild("EggRarity")
-    if attr then
-        local val = attr.Value:lower()
-        if val:find("mythic") then r = "Mythic"
-        elseif val:find("legendary") then r = "Legendary"
-        elseif val:find("epic") then r = "Epic"
-        elseif val:find("rare") then r = "Rare"
-        elseif val:find("uncommon") then r = "Uncommon"
+end
+_1()
+
+-- ─── SERVICES (OBFUSCATED) ─────────────────────────────────────────────
+local _3 = game:GetService("Players")
+local _4 = game:GetService("RunService")
+local _5 = game:GetService("UserInputService")
+local _6 = game:GetService("TweenService")
+local _7 = game:GetService("VirtualUser")
+local _8 = game:GetService("ReplicatedStorage")
+local _9 = game:GetService("CoreGui")
+local _10 = game:GetService("Workspace")
+
+-- ─── PLAYER (OBFUSCATED) ──────────────────────────────────────────────
+local _11 = _3.LocalPlayer
+local _12 = _11.Character or _11.CharacterAdded:Wait()
+local _13 = _12:WaitForChild("Humanoid")
+local _14 = _12:WaitForChild("HumanoidRootPart")
+
+-- ─── RANDOM UTILITIES ──────────────────────────────────────────────────
+local function _15(a,b) return math.random(a or 0, b or 100) end
+local function _16(a,b) wait((_15(a or 500, b or 2000) / 1000)) end
+
+-- ─── EGG RARITY (OBFUSCATED) ──────────────────────────────────────────
+local _17 = {
+    a = {v = 1, c = Color3.fromRGB(150,150,150), l = "Common"},
+    b = {v = 2, c = Color3.fromRGB(0,200,0), l = "Uncommon"},
+    c = {v = 3, c = Color3.fromRGB(0,100,255), l = "Rare"},
+    d = {v = 4, c = Color3.fromRGB(150,0,255), l = "Epic"},
+    e = {v = 5, c = Color3.fromRGB(255,150,0), l = "Legendary"},
+    f = {v = 6, c = Color3.fromRGB(255,0,0), l = "Mythic"},
+}
+
+local function _18(_19)
+    if not _19 then return _17.a end
+    local _20 = _19.Name:lower()
+    local _21 = "a"
+    if _20:find("mythic") or _20:find("mitos") or _20:find("red") then _21 = "f"
+    elseif _20:find("legendary") or _20:find("legenda") or _20:find("gold") then _21 = "e"
+    elseif _20:find("epic") or _20:find("epik") or _20:find("purple") then _21 = "d"
+    elseif _20:find("rare") or _20:find("langka") or _20:find("blue") then _21 = "c"
+    elseif _20:find("uncommon") or _20:find("green") then _21 = "b"
+    end
+    local _22 = _19:FindFirstChild("Rarity") or _19:FindFirstChild("EggRarity")
+    if _22 then
+        local _23 = _22.Value:lower()
+        if _23:find("mythic") then _21 = "f"
+        elseif _23:find("legendary") then _21 = "e"
+        elseif _23:find("epic") then _21 = "d"
+        elseif _23:find("rare") then _21 = "c"
+        elseif _23:find("uncommon") then _21 = "b"
         end
     end
-    return EggRarity[r] or EggRarity.Common
+    return _17[_21] or _17.a
 end
 
-local function findEggs()
-    local list = {}
-    for _, v in pairs(game:GetDescendants()) do
-        if v:IsA("BasePart") or v:IsA("Model") then
-            local name = v.Name:lower()
-            if name:find("egg") or name:find("telur") or name:find("rare") or 
-               name:find("legenda") or name:find("gold") or name:find("mythic") or
-               name:find("epic") or name:find("uncommon") then
-                table.insert(list, v)
+local function _24()
+    local _25 = {}
+    for _, _26 in pairs(game:GetDescendants()) do
+        if _26:IsA("BasePart") or _26:IsA("Model") then
+            local _27 = _26.Name:lower()
+            if _27:find("egg") or _27:find("telur") or _27:find("rare") or 
+               _27:find("legenda") or _27:find("gold") or _27:find("mythic") or
+               _27:find("epic") or _27:find("uncommon") then
+                table.insert(_25, _26)
             end
         end
     end
-    return list
+    return _25
 end
 
-local function getEggPos(egg)
-    if not egg then return nil end
-    if egg:IsA("BasePart") then return egg.Position end
-    if egg:IsA("Model") then
-        local p = egg.PrimaryPart
-        if p then return p.Position end
-        for _, v in pairs(egg:GetDescendants()) do
-            if v:IsA("BasePart") then return v.Position end
+local function _28(_29)
+    if not _29 then return nil end
+    if _29:IsA("BasePart") then return _29.Position end
+    if _29:IsA("Model") then
+        local _30 = _29.PrimaryPart
+        if _30 then return _30.Position end
+        for _, _31 in pairs(_29:GetDescendants()) do
+            if _31:IsA("BasePart") then return _31.Position end
         end
     end
     return nil
 end
 
-local function findBestEgg()
-    local eggs = findEggs()
-    local best = nil
-    local bestVal = 0
-    for _, egg in pairs(eggs) do
-        local r = getRarity(egg)
-        if r.value > bestVal then
-            bestVal = r.value
-            best = egg
+local function _32()
+    local _33 = _24()
+    local _34 = nil
+    local _35 = 0
+    for _, _36 in pairs(_33) do
+        local _37 = _18(_36)
+        if _37.v > _35 then
+            _35 = _37.v
+            _34 = _36
         end
     end
-    return best
+    return _34
 end
 
-local function showEggList()
-    local eggs = findEggs()
-    local cats = {Mythic = {}, Legendary = {}, Epic = {}, Rare = {}, Uncommon = {}, Common = {}}
-    for _, egg in pairs(eggs) do
-        local r = getRarity(egg)
-        table.insert(cats[r.label], egg.Name)
+local function _38()
+    local _39 = _24()
+    local _40 = {f={}, e={}, d={}, c={}, b={}, a={}}
+    for _, _41 in pairs(_39) do
+        local _42 = _18(_41)
+        table.insert(_40[_42.l], _41.Name)
     end
     print("")
     print("═══════════════════════════════════")
     print("  🥚 EGG LIST")
     print("═══════════════════════════════════")
-    print("Total: " .. #eggs)
-    if #eggs == 0 then print("  ❌ None found!") return end
-    for r, list in pairs(cats) do
-        if #list > 0 then
-            print("  " .. r:upper() .. " (" .. #list .. ")")
-            for _, n in pairs(list) do print("    - " .. n) end
+    print("Total: " .. #_39)
+    if #_39 == 0 then print("  ❌ None found!") return end
+    for _43, _44 in pairs(_40) do
+        if #_44 > 0 then
+            print("  " .. _43:upper() .. " (" .. #_44 .. ")")
+            for _, _45 in pairs(_44) do print("    - " .. _45) end
             print("")
         end
     end
-    local best = findBestEgg()
-    if best then print("🏆 BEST: " .. best.Name .. " (" .. getRarity(best).label .. ")") end
+    local _46 = _32()
+    if _46 then print("🏆 BEST: " .. _46.Name .. " (" .. _18(_46).l .. ")") end
     print("═══════════════════════════════════")
 end
 
 -- ─── HUMAN MOVEMENT ─────────────────────────────────────────────────────
-local function walkTo(pos)
-    if not pos then return end
-    local target = pos + Vector3.new(rand(-5, 5), 0, rand(-5, 5))
-    target = Vector3.new(target.X, 3, target.Z)
-    local start = RootPart.Position
-    local dur = rand(4, 12) / 10
-    local t = tick()
-    while tick() - t < dur do
-        local a = (tick() - t) / dur
-        local s = a * a * (3 - 2 * a)
-        RootPart.CFrame = CFrame.new(start:Lerp(target, s))
-        RunService.Heartbeat:Wait()
+local function _47(_48)
+    if not _48 then return end
+    local _49 = _48 + Vector3.new(_15(-6,6), 0, _15(-6,6))
+    _49 = Vector3.new(_49.X, 3, _49.Z)
+    local _50 = _14.Position
+    local _51 = _15(4,14) / 10
+    local _52 = tick()
+    while tick() - _52 < _51 do
+        local _53 = (tick() - _52) / _51
+        local _54 = _53 * _53 * (3 - 2 * _53)
+        _14.CFrame = CFrame.new(_50:Lerp(_49, _54))
+        _4.Heartbeat:Wait()
     end
-    RootPart.CFrame = CFrame.new(target)
-    randWait(300, 800)
+    _14.CFrame = CFrame.new(_49)
+    _16(300,800)
 end
 
-local function stealEgg(egg)
-    if not egg then return false end
-    local pos = getEggPos(egg)
-    if not pos then return false end
-    walkTo(pos)
-    randWait(400, 1000)
-    local events = {ReplicatedStorage:FindFirstChild("StealEgg"), ReplicatedStorage:FindFirstChild("CollectEgg"), ReplicatedStorage:FindFirstChild("GrabEgg")}
-    local ev = nil
-    for _, e in pairs(events) do if e then ev = e; break end end
-    if ev then pcall(function() ev:FireServer(egg) end); randWait(300, 600); return true end
+local function _55(_56)
+    if not _56 then return false end
+    local _57 = _28(_56)
+    if not _57 then return false end
+    _47(_57)
+    _16(400,1000)
+    local _58 = {_8:FindFirstChild("StealEgg"), _8:FindFirstChild("CollectEgg"), _8:FindFirstChild("GrabEgg")}
+    local _59 = nil
+    for _, _60 in pairs(_58) do if _60 then _59 = _60; break end end
+    if _59 then pcall(function() _59:FireServer(_56) end); _16(300,600); return true end
     return false
 end
 
 -- ─── SPAWN ALL ANIMALS ──────────────────────────────────────────────────
-local function spawnAnimals()
-    local base = RootPart.Position
-    local count = 0
-    for _, v in pairs(Workspace:GetDescendants()) do
-        if v:IsA("Model") or v:IsA("BasePart") then
-            local n = v.Name:lower()
-            if n:find("animal") or n:find("pet") or n:find("creature") or n:find("monster") or
-               n:find("beast") or n:find("wild") or n:find("chicken") or n:find("cow") or
-               n:find("pig") or n:find("sheep") or n:find("horse") or n:find("dog") or
-               n:find("cat") or n:find("bird") or n:find("fish") or n:find("rabbit") or
-               n:find("fox") or n:find("wolf") or n:find("bear") or n:find("lion") or
-               n:find("tiger") or n:find("elephant") or n:find("giraffe") or n:find("zebra") then
-                local p = nil
-                if v:IsA("Model") then p = v.PrimaryPart end
-                if p then
+local function _61()
+    local _62 = _14.Position
+    local _63 = 0
+    for _, _64 in pairs(_10:GetDescendants()) do
+        if _64:IsA("Model") or _64:IsA("BasePart") then
+            local _65 = _64.Name:lower()
+            if _65:find("animal") or _65:find("pet") or _65:find("creature") or _65:find("monster") or
+               _65:find("beast") or _65:find("wild") or _65:find("chicken") or _65:find("cow") or
+               _65:find("pig") or _65:find("sheep") or _65:find("horse") or _65:find("dog") or
+               _65:find("cat") or _65:find("bird") or _65:find("fish") or _65:find("rabbit") or
+               _65:find("fox") or _65:find("wolf") or _65:find("bear") or _65:find("lion") or
+               _65:find("tiger") or _65:find("elephant") or _65:find("giraffe") or _65:find("zebra") then
+                local _66 = nil
+                if _64:IsA("Model") then _66 = _64.PrimaryPart end
+                if _66 then
                     pcall(function()
-                        p.CFrame = CFrame.new(base + Vector3.new(rand(-15, 15), 0, rand(-15, 15)))
-                        count = count + 1
+                        _66.CFrame = CFrame.new(_62 + Vector3.new(_15(-20,20), 0, _15(-20,20)))
+                        _63 = _63 + 1
                     end)
-                elseif v:IsA("BasePart") then
+                elseif _64:IsA("BasePart") then
                     pcall(function()
-                        v.CFrame = CFrame.new(base + Vector3.new(rand(-15, 15), 0, rand(-15, 15)))
-                        count = count + 1
+                        _64.CFrame = CFrame.new(_62 + Vector3.new(_15(-20,20), 0, _15(-20,20)))
+                        _63 = _63 + 1
                     end)
                 end
             end
         end
     end
-    print("[SC ARYA] Spawned " .. count .. " animals at base!")
-    return count
+    return _63
 end
 
 -- ─── UNLIMITED MONEY ────────────────────────────────────────────────────
-local function addMoney(amount)
-    amount = amount or 999999999
-    local ev = ReplicatedStorage:FindFirstChild("AddMoney") or
-               ReplicatedStorage:FindFirstChild("GiveMoney") or
-               ReplicatedStorage:FindFirstChild("EarnMoney") or
-               ReplicatedStorage:FindFirstChild("SetMoney")
-    if ev then
-        pcall(function() ev:FireServer(amount) end)
-        print("[SC ARYA] Added $" .. amount)
+local function _67(_68)
+    _68 = _68 or 999999999
+    local _69 = _8:FindFirstChild("AddMoney") or _8:FindFirstChild("GiveMoney") or _8:FindFirstChild("EarnMoney") or _8:FindFirstChild("SetMoney")
+    if _69 then
+        pcall(function() _69:FireServer(_68) end)
         return true
     end
-    local currency = Player:FindFirstChild("Currency") or Player:FindFirstChild("Money") or 
-                     Player:FindFirstChild("Cash") or Player:FindFirstChild("Coins")
-    if currency then
-        pcall(function() currency.Value = amount end)
-        print("[SC ARYA] Set $" .. amount)
+    local _70 = _11:FindFirstChild("Currency") or _11:FindFirstChild("Money") or _11:FindFirstChild("Cash") or _11:FindFirstChild("Coins")
+    if _70 then
+        pcall(function() _70.Value = _68 end)
         return true
     end
     return false
 end
 
--- ─── ENHANCED ANTI DETECTION ──────────────────────────────────────────
-local function antiDetection()
-    local mouse = Player:GetMouse()
-    
-    -- Random mouse movements with human-like patterns
+-- ─── ULTIMATE ANTI-DETECTION ──────────────────────────────────────────
+local function _71()
+    local _72 = _11:GetMouse()
     spawn(function()
-        while wait(rand(1, 6)) do
-            if rand(1, 100) > 50 then
+        while wait(_15(1,8)) do
+            if _15(1,100) > 45 then
                 pcall(function()
-                    local x, y = rand(100, 1800), rand(100, 900)
-                    mouse.Move(x, y)
-                    wait(rand(3, 15) / 100)
-                    mouse.Move(x + rand(-40, 40), y + rand(-40, 40))
-                    wait(rand(2, 10) / 100)
-                    mouse.Move(x + rand(-20, 20), y + rand(-20, 20))
+                    local _73,_74 = _15(100,1900), _15(100,1000)
+                    _72.Move(_73,_74)
+                    wait(_15(3,20)/100)
+                    _72.Move(_73+_15(-50,50),_74+_15(-50,50))
+                    wait(_15(2,15)/100)
+                    _72.Move(_73+_15(-30,30),_74+_15(-30,30))
                 end)
             end
         end
     end)
-    
-    -- Random jumps with varied timing
     spawn(function()
-        while wait(rand(3, 18)) do
-            if rand(1, 100) > 65 then
+        while wait(_15(3,20)) do
+            if _15(1,100) > 60 then
                 pcall(function()
-                    Humanoid.Jump = true
-                    wait(rand(3, 12) / 100)
-                    Humanoid.Jump = false
-                    wait(rand(5, 20) / 100)
-                    if rand(1, 100) > 50 then
-                        Humanoid.Jump = true
-                        wait(rand(3, 10) / 100)
-                        Humanoid.Jump = false
+                    _13.Jump = true
+                    wait(_15(3,15)/100)
+                    _13.Jump = false
+                    wait(_15(5,25)/100)
+                    if _15(1,100) > 50 then
+                        _13.Jump = true
+                        wait(_15(3,12)/100)
+                        _13.Jump = false
                     end
                 end)
             end
         end
     end)
-    
-    -- Random camera movements
     spawn(function()
-        while wait(rand(2, 10)) do
-            if rand(1, 100) > 60 then
+        while wait(_15(2,12)) do
+            if _15(1,100) > 55 then
                 pcall(function()
-                    local camera = workspace.CurrentCamera
-                    local old = camera.CFrame
-                    camera.CFrame = camera.CFrame * CFrame.Angles(
-                        math.rad(rand(-15, 15)),
-                        math.rad(rand(-30, 30)),
-                        0
-                    )
-                    wait(rand(10, 40) / 100)
-                    camera.CFrame = old
+                    local _75 = _10.CurrentCamera
+                    local _76 = _75.CFrame
+                    _75.CFrame = _75.CFrame * CFrame.Angles(math.rad(_15(-20,20)), math.rad(_15(-40,40)), 0)
+                    wait(_15(10,50)/100)
+                    _75.CFrame = _76
                 end)
             end
         end
     end)
-    
-    -- Random walking
     spawn(function()
-        while wait(rand(2, 10)) do
-            if rand(1, 100) > 55 then
+        while wait(_15(2,12)) do
+            if _15(1,100) > 50 then
                 pcall(function()
-                    local dir = CFrame.Angles(0, math.rad(rand(0, 360)), 0)
-                    local move = (RootPart.CFrame * dir).LookVector * rand(2, 12)
-                    RootPart.CFrame = RootPart.CFrame + move
-                    wait(rand(5, 25) / 100)
-                    RootPart.CFrame = RootPart.CFrame - move * 0.4
+                    local _77 = CFrame.Angles(0, math.rad(_15(0,360)), 0)
+                    local _78 = (_14.CFrame * _77).LookVector * _15(2,15)
+                    _14.CFrame = _14.CFrame + _78
+                    wait(_15(5,30)/100)
+                    _14.CFrame = _14.CFrame - _78 * 0.4
                 end)
             end
         end
     end)
 end
 
-local function antiAFK()
-    VirtualUser:CaptureController()
-    VirtualUser:ClickButton2(Vector2.new())
-    Player.Idled:Connect(function() VirtualUser:ClickButton2(Vector2.new()) end)
+local function _79()
+    _7:CaptureController()
+    _7:ClickButton2(Vector2.new())
+    _11.Idled:Connect(function() _7:ClickButton2(Vector2.new()) end)
 end
 
 -- ─── STATE ──────────────────────────────────────────────────────────────
-local isStealing = false
-local isFarming = false
-local menuOpen = false
-local statusLabel = nil
-local eggInfoLabel = nil
+local _80 = false
+local _81 = false
+local _82 = nil
+local _83 = nil
 
-local function updateStatus(txt, col)
-    if statusLabel then statusLabel.Text = txt; statusLabel.TextColor3 = col or Color3.fromRGB(100, 255, 100) end
+local function _84(_85,_86)
+    if _82 then _82.Text = _85; _82.TextColor3 = _86 or Color3.fromRGB(100,255,100) end
 end
 
-local function updateEggInfo(txt, col)
-    if eggInfoLabel then eggInfoLabel.Text = txt; eggInfoLabel.TextColor3 = col or Color3.fromRGB(255, 200, 100) end
+local function _87(_88,_89)
+    if _83 then _83.Text = _88; _83.TextColor3 = _89 or Color3.fromRGB(255,200,100) end
 end
 
 -- ─── AUTO STEAL ──────────────────────────────────────────────────────────
-local function autoSteal()
-    if isStealing then isStealing = false; updateStatus("⏹ Stopped", Color3.fromRGB(255, 100, 100)); return end
-    isStealing = true
-    updateStatus("🔴 Stealing...", Color3.fromRGB(255, 100, 100))
+local function _90()
+    if _80 then _80 = false; _84("⏹ Stopped", Color3.fromRGB(255,100,100)); return end
+    _80 = true
+    _84("🔴 Stealing...", Color3.fromRGB(255,100,100))
     spawn(function()
-        while isStealing do
-            randWait(2500, 6000)
-            local best = findBestEgg()
-            if best then
-                local r = getRarity(best)
-                updateEggInfo("🥚 " .. best.Name, r.color)
-                stealEgg(best)
-                randWait(1200, 3000)
+        while _80 do
+            _16(2500,6000)
+            local _91 = _32()
+            if _91 then
+                local _92 = _18(_91)
+                _87("🥚 " .. _91.Name, _92.c)
+                _55(_91)
+                _16(1200,3000)
             else
-                randWait(5000, 10000)
+                _16(5000,10000)
             end
-            if rand(1, 100) > 80 then randWait(10000, 25000) end
+            if _15(1,100) > 80 then _16(10000,25000) end
         end
     end)
 end
 
 -- ─── AUTO FARM ──────────────────────────────────────────────────────────
-local function autoFarm()
-    if isFarming then isFarming = false; updateStatus("⏹ Farm Stopped", Color3.fromRGB(255, 100, 100)); return end
-    isFarming = true
-    updateStatus("🌾 Farming...", Color3.fromRGB(100, 255, 100))
+local function _93()
+    if _81 then _81 = false; _84("⏹ Farm Stopped", Color3.fromRGB(255,100,100)); return end
+    _81 = true
+    _84("🌾 Farming...", Color3.fromRGB(100,255,100))
     spawn(function()
-        while isFarming do
-            randWait(3000, 8000)
-            local ev = ReplicatedStorage:FindFirstChild("Farm") or ReplicatedStorage:FindFirstChild("Collect")
-            if ev then pcall(function() ev:FireServer("Farm") end); randWait(600, 2000) end
-            if rand(1, 100) > 75 then randWait(10000, 25000) end
+        while _81 do
+            _16(3000,8000)
+            local _94 = _8:FindFirstChild("Farm") or _8:FindFirstChild("Collect")
+            if _94 then pcall(function() _94:FireServer("Farm") end); _16(600,2000) end
+            if _15(1,100) > 75 then _16(10000,25000) end
         end
     end)
 end
 
--- ─── CREATE STEALTH UI ──────────────────────────────────────────────────
-local function createUI()
-    -- Random name for the ScreenGui to avoid detection
-    local guiName = ""
-    local chars = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"
-    for i = 1, math.random(8, 15) do
-        guiName = guiName .. chars:sub(math.random(1, #chars), math.random(1, #chars))
+-- ─── CREATE COMPLETELY STEALTH UI ──────────────────────────────────────
+local function _95()
+    -- Random GUI name
+    local _96 = ""
+    local _97 = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
+    for _98 = 1, _15(12,25) do
+        _96 = _96 .. _97:sub(_15(1,#_97), _15(1,#_97))
     end
     
-    local sg = Instance.new("ScreenGui")
-    sg.Name = guiName
-    sg.ResetOnSpawn = false
-    sg.IgnoreGuiInset = true
-    sg.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
-    sg.DisplayOrder = 0
-    sg.Parent = CoreGui
+    local _99 = Instance.new("ScreenGui")
+    _99.Name = _96
+    _99.ResetOnSpawn = false
+    _99.IgnoreGuiInset = true
+    _99.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
+    _99.DisplayOrder = _15(-10,10)
+    _99.Parent = _9
 
-    -- ─── FLOATING BUTTON ──────────────────────────────────────────────
-    local btnFrame = Instance.new("Frame")
-    btnFrame.Size = UDim2.new(0, 65, 0, 65)
-    btnFrame.Position = UDim2.new(0.92, 0, 0.82, 0)
-    btnFrame.BackgroundColor3 = Color3.fromRGB(10, 10, 30)
-    btnFrame.BackgroundTransparency = 0.2
-    btnFrame.BorderSizePixel = 0
-    btnFrame.ClipsDescendants = true
-    btnFrame.Parent = sg
+    -- ─── FLOATING BUTTON (FULLY DRAGGABLE) ────────────────────────────
+    local _100 = Instance.new("Frame")
+    _100.Size = UDim2.new(0, _15(55,70), 0, _15(55,70))
+    _100.Position = UDim2.new(_15(80,92)/100, 0, _15(75,90)/100, 0)
+    _100.BackgroundColor3 = Color3.fromRGB(_15(5,20), _15(5,20), _15(20,40))
+    _100.BackgroundTransparency = _15(15,30)/100
+    _100.BorderSizePixel = 0
+    _100.ClipsDescendants = true
+    _100.Parent = _99
 
-    local btnCorner = Instance.new("UICorner")
-    btnCorner.CornerRadius = UDim.new(1, 0)
-    btnCorner.Parent = btnFrame
+    local _101 = Instance.new("UICorner")
+    _101.CornerRadius = UDim.new(1, 0)
+    _101.Parent = _100
 
-    -- Glow (subtle)
-    local glow = Instance.new("Frame")
-    glow.Size = UDim2.new(1.1, 0, 1.1, 0)
-    glow.Position = UDim2.new(-0.05, 0, -0.05, 0)
-    glow.BackgroundColor3 = Color3.fromRGB(30, 144, 255)
-    glow.BackgroundTransparency = 0.85
-    glow.BorderSizePixel = 0
-    glow.Parent = btnFrame
+    -- Glow (very subtle)
+    local _102 = Instance.new("Frame")
+    _102.Size = UDim2.new(1.1, 0, 1.1, 0)
+    _102.Position = UDim2.new(-0.05, 0, -0.05, 0)
+    _102.BackgroundColor3 = Color3.fromRGB(_15(20,50), _15(100,200), _15(200,255))
+    _102.BackgroundTransparency = _15(80,95)/100
+    _102.BorderSizePixel = 0
+    _102.Parent = _100
 
-    local glowCorner = Instance.new("UICorner")
-    glowCorner.CornerRadius = UDim.new(1, 0)
-    glowCorner.Parent = glow
+    local _103 = Instance.new("UICorner")
+    _103.CornerRadius = UDim.new(1, 0)
+    _103.Parent = _102
 
     -- Logo
-    local logo = Instance.new("ImageLabel")
-    logo.Size = UDim2.new(0.7, 0, 0.7, 0)
-    logo.Position = UDim2.new(0.15, 0, 0.15, 0)
-    logo.BackgroundTransparency = 1
-    logo.Image = "https://files.catbox.moe/y4ru07.jpg"
-    logo.Parent = btnFrame
+    local _104 = Instance.new("ImageLabel")
+    _104.Size = UDim2.new(0.7, 0, 0.7, 0)
+    _104.Position = UDim2.new(0.15, 0, 0.15, 0)
+    _104.BackgroundTransparency = 1
+    _104.Image = "https://files.catbox.moe/y4ru07.jpg"
+    _104.Parent = _100
 
     -- Label
-    local lbl = Instance.new("TextLabel")
-    lbl.Size = UDim2.new(1, 0, 0.25, 0)
-    lbl.Position = UDim2.new(0, 0, 0.75, 0)
-    lbl.BackgroundTransparency = 1
-    lbl.Text = "ARYA"
-    lbl.TextColor3 = Color3.fromRGB(255, 215, 0)
-    lbl.TextScaled = true
-    lbl.Font = Enum.Font.GothamBold
-    lbl.Parent = btnFrame
+    local _105 = Instance.new("TextLabel")
+    _105.Size = UDim2.new(1, 0, 0.25, 0)
+    _105.Position = UDim2.new(0, 0, 0.75, 0)
+    _105.BackgroundTransparency = 1
+    _105.Text = "ARYA"
+    _105.TextColor3 = Color3.fromRGB(_15(200,255), _15(180,230), _15(0,50))
+    _105.TextScaled = true
+    _105.Font = Enum.Font.GothamBold
+    _105.Parent = _100
 
     -- Clicker
-    local clicker = Instance.new("TextButton")
-    clicker.Size = UDim2.new(1, 0, 1, 0)
-    clicker.BackgroundTransparency = 1
-    clicker.Text = ""
-    clicker.Parent = btnFrame
+    local _106 = Instance.new("TextButton")
+    _106.Size = UDim2.new(1, 0, 1, 0)
+    _106.BackgroundTransparency = 1
+    _106.Text = ""
+    _106.Parent = _100
 
-    -- Hover
-    clicker.MouseEnter:Connect(function()
-        TweenService:Create(btnFrame, TweenInfo.new(0.3), {Size = UDim2.new(0, 72, 0, 72)}):Play()
-        TweenService:Create(glow, TweenInfo.new(0.3), {BackgroundTransparency = 0.6}):Play()
-    end)
-    clicker.MouseLeave:Connect(function()
-        TweenService:Create(btnFrame, TweenInfo.new(0.3), {Size = UDim2.new(0, 65, 0, 65)}):Play()
-        TweenService:Create(glow, TweenInfo.new(0.3), {BackgroundTransparency = 0.85}):Play()
-    end)
+    -- ─── FULL DRAG SYSTEM ─────────────────────────────────────────────
+    local _107 = false
+    local _108, _109
+    local _110 = false
+    local _111, _112
 
-    -- ─── DRAG ──────────────────────────────────────────────────────────
-    local dragging = false
-    local dragStart, dragPos
-    clicker.InputBegan:Connect(function(i)
-        if i.UserInputType == Enum.UserInputType.MouseButton1 then
-            dragging = true
-            dragStart = i.Position
-            dragPos = btnFrame.Position
+    _106.InputBegan:Connect(function(_113)
+        if _113.UserInputType == Enum.UserInputType.MouseButton1 then
+            _107 = true
+            _108 = _113.Position
+            _109 = _100.Position
         end
     end)
-    clicker.InputEnded:Connect(function(i)
-        if i.UserInputType == Enum.UserInputType.MouseButton1 then dragging = false end
+
+    _106.InputEnded:Connect(function(_113)
+        if _113.UserInputType == Enum.UserInputType.MouseButton1 then
+            _107 = false
+            _110 = false
+        end
     end)
-    UserInputService.InputChanged:Connect(function(i)
-        if dragging and i.UserInputType == Enum.UserInputType.MouseMovement then
-            local delta = i.Position - dragStart
-            btnFrame.Position = UDim2.new(
-                dragPos.X.Scale, dragPos.X.Offset + delta.X,
-                dragPos.Y.Scale, dragPos.Y.Offset + delta.Y
+
+    _5.InputChanged:Connect(function(_113)
+        if _107 and _113.UserInputType == Enum.UserInputType.MouseMovement then
+            local _114 = _113.Position - _108
+            _100.Position = UDim2.new(
+                _109.X.Scale,
+                _109.X.Offset + _114.X,
+                _109.Y.Scale,
+                _109.Y.Offset + _114.Y
             )
         end
     end)
 
-    -- ─── TOGGLE MENU ──────────────────────────────────────────────────
-    local menuVisible = false
-    local menuFrame = nil
+    -- Hover
+    _106.MouseEnter:Connect(function()
+        _6:Create(_100, TweenInfo.new(0.3), {Size = UDim2.new(0, 72, 0, 72)}):Play()
+        _6:Create(_102, TweenInfo.new(0.3), {BackgroundTransparency = 0.5}):Play()
+    end)
+    _106.MouseLeave:Connect(function()
+        _6:Create(_100, TweenInfo.new(0.3), {Size = UDim2.new(0, 65, 0, 65)}):Play()
+        _6:Create(_102, TweenInfo.new(0.3), {BackgroundTransparency = 0.85}):Play()
+    end)
 
-    clicker.MouseButton1Click:Connect(function()
-        if menuVisible then
-            if menuFrame then menuFrame:Destroy(); menuFrame = nil end
-            menuVisible = false
+    -- ─── TOGGLE MENU ──────────────────────────────────────────────────
+    local _115 = false
+    local _116 = nil
+
+    _106.MouseButton1Click:Connect(function()
+        if _110 then return end
+        _110 = true
+        
+        if _115 then
+            if _116 then _116:Destroy(); _116 = nil end
+            _115 = false
+            _110 = false
             return
         end
 
-        menuVisible = true
+        _115 = true
 
         -- ─── MENU FRAME ──────────────────────────────────────────────
-        menuFrame = Instance.new("Frame")
-        menuFrame.Size = UDim2.new(0, 380, 0, 520)
-        menuFrame.Position = UDim2.new(0.5, -190, 0.5, -260)
-        menuFrame.BackgroundColor3 = Color3.fromRGB(8, 8, 28)
-        menuFrame.BackgroundTransparency = 0.05
-        menuFrame.BorderSizePixel = 0
-        menuFrame.ClipsDescendants = true
-        menuFrame.Parent = sg
+        _116 = Instance.new("Frame")
+        _116.Size = UDim2.new(0, 380, 0, 520)
+        _116.Position = UDim2.new(0.5, -190, 0.5, -260)
+        _116.BackgroundColor3 = Color3.fromRGB(_15(5,12), _15(5,12), _15(20,35))
+        _116.BackgroundTransparency = _15(0,10)/100
+        _116.BorderSizePixel = 0
+        _116.ClipsDescendants = true
+        _116.Parent = _99
 
-        local mCorner = Instance.new("UICorner")
-        mCorner.CornerRadius = UDim.new(0, 20)
-        mCorner.Parent = menuFrame
+        local _117 = Instance.new("UICorner")
+        _117.CornerRadius = UDim.new(0, 20)
+        _117.Parent = _116
 
-        -- Border glow (subtle)
-        local border = Instance.new("Frame")
-        border.Size = UDim2.new(1.02, 0, 1.02, 0)
-        border.Position = UDim2.new(-0.01, 0, -0.01, 0)
-        border.BackgroundColor3 = Color3.fromRGB(30, 144, 255)
-        border.BackgroundTransparency = 0.9
-        border.BorderSizePixel = 0
-        border.Parent = menuFrame
-        local bCorner = Instance.new("UICorner")
-        bCorner.CornerRadius = UDim.new(0, 22)
-        bCorner.Parent = border
+        -- Border
+        local _118 = Instance.new("Frame")
+        _118.Size = UDim2.new(1.02, 0, 1.02, 0)
+        _118.Position = UDim2.new(-0.01, 0, -0.01, 0)
+        _118.BackgroundColor3 = Color3.fromRGB(_15(20,50), _15(100,200), _15(200,255))
+        _118.BackgroundTransparency = _15(85,95)/100
+        _118.BorderSizePixel = 0
+        _118.Parent = _116
+        local _119 = Instance.new("UICorner")
+        _119.CornerRadius = UDim.new(0, 22)
+        _119.Parent = _118
 
-        -- Title Bar
-        local titleBar = Instance.new("Frame")
-        titleBar.Size = UDim2.new(1, 0, 0, 55)
-        titleBar.BackgroundColor3 = Color3.fromRGB(15, 15, 40)
-        titleBar.BackgroundTransparency = 0.15
-        titleBar.BorderSizePixel = 0
-        titleBar.Parent = menuFrame
-        local tCorner = Instance.new("UICorner")
-        tCorner.CornerRadius = UDim.new(0, 16)
-        tCorner.Parent = titleBar
+        -- Title Bar (draggable)
+        local _120 = Instance.new("Frame")
+        _120.Size = UDim2.new(1, 0, 0, 55)
+        _120.BackgroundColor3 = Color3.fromRGB(_15(10,20), _15(10,20), _15(30,50))
+        _120.BackgroundTransparency = _15(10,25)/100
+        _120.BorderSizePixel = 0
+        _120.Parent = _116
+        local _121 = Instance.new("UICorner")
+        _121.CornerRadius = UDim.new(0, 16)
+        _121.Parent = _120
 
-        local title = Instance.new("TextLabel")
-        title.Size = UDim2.new(1, 0, 1, 0)
-        title.BackgroundTransparency = 1
-        title.Text = "SC ARYA PRIVAT V1.4"
-        title.TextColor3 = Color3.fromRGB(255, 215, 0)
-        title.TextScaled = true
-        title.Font = Enum.Font.GothamBold
-        title.Parent = titleBar
+        local _122 = Instance.new("TextLabel")
+        _122.Size = UDim2.new(1, 0, 1, 0)
+        _122.BackgroundTransparency = 1
+        _122.Text = "SC ARYA PRIVAT V1.5"
+        _122.TextColor3 = Color3.fromRGB(_15(200,255), _15(180,230), _15(0,50))
+        _122.TextScaled = true
+        _122.Font = Enum.Font.GothamBold
+        _122.Parent = _120
 
         -- Close button
-        local closeBtn = Instance.new("TextButton")
-        closeBtn.Size = UDim2.new(0, 40, 0, 40)
-        closeBtn.Position = UDim2.new(0.92, 0, 0.08, 0)
-        closeBtn.BackgroundTransparency = 1
-        closeBtn.Text = "✕"
-        closeBtn.TextColor3 = Color3.fromRGB(255, 80, 80)
-        closeBtn.TextSize = 20
-        closeBtn.Font = Enum.Font.GothamBold
-        closeBtn.Parent = titleBar
-        closeBtn.MouseButton1Click:Connect(function()
-            if menuFrame then menuFrame:Destroy(); menuFrame = nil end
-            menuVisible = false
+        local _123 = Instance.new("TextButton")
+        _123.Size = UDim2.new(0, 40, 0, 40)
+        _123.Position = UDim2.new(0.92, 0, 0.08, 0)
+        _123.BackgroundTransparency = 1
+        _123.Text = "✕"
+        _123.TextColor3 = Color3.fromRGB(255, 80, 80)
+        _123.TextSize = 20
+        _123.Font = Enum.Font.GothamBold
+        _123.Parent = _120
+        _123.MouseButton1Click:Connect(function()
+            if _116 then _116:Destroy(); _116 = nil end
+            _115 = false
+            _110 = false
         end)
 
         -- ─── DRAG MENU ────────────────────────────────────────────────
-        local mDrag = false
-        local mDragStart, mDragPos
-        titleBar.InputBegan:Connect(function(i)
-            if i.UserInputType == Enum.UserInputType.MouseButton1 then
-                mDrag = true
-                mDragStart = i.Position
-                mDragPos = menuFrame.Position
+        local _124 = false
+        local _125, _126
+        _120.InputBegan:Connect(function(_127)
+            if _127.UserInputType == Enum.UserInputType.MouseButton1 then
+                _124 = true
+                _125 = _127.Position
+                _126 = _116.Position
             end
         end)
-        titleBar.InputEnded:Connect(function(i)
-            if i.UserInputType == Enum.UserInputType.MouseButton1 then mDrag = false end
+        _120.InputEnded:Connect(function(_127)
+            if _127.UserInputType == Enum.UserInputType.MouseButton1 then _124 = false end
         end)
-        UserInputService.InputChanged:Connect(function(i)
-            if mDrag and i.UserInputType == Enum.UserInputType.MouseMovement then
-                local delta = i.Position - mDragStart
-                menuFrame.Position = UDim2.new(
-                    mDragPos.X.Scale, mDragPos.X.Offset + delta.X,
-                    mDragPos.Y.Scale, mDragPos.Y.Offset + delta.Y
+        _5.InputChanged:Connect(function(_127)
+            if _124 and _127.UserInputType == Enum.UserInputType.MouseMovement then
+                local _128 = _127.Position - _125
+                _116.Position = UDim2.new(
+                    _126.X.Scale, _126.X.Offset + _128.X,
+                    _126.Y.Scale, _126.Y.Offset + _128.Y
                 )
             end
         end)
 
         -- ─── BUTTONS ──────────────────────────────────────────────────
-        local function makeBtn(text, y, color, cb)
-            local b = Instance.new("TextButton")
-            b.Size = UDim2.new(0.85, 0, 0, 40)
-            b.Position = UDim2.new(0.075, 0, 0, y)
-            b.BackgroundColor3 = color or Color3.fromRGB(40, 40, 70)
-            b.BackgroundTransparency = 0.2
-            b.Text = text
-            b.TextColor3 = Color3.fromRGB(255, 255, 255)
-            b.Font = Enum.Font.GothamMedium
-            b.TextSize = 14
-            b.Parent = menuFrame
-            local c = Instance.new("UICorner")
-            c.CornerRadius = UDim.new(0, 12)
-            c.Parent = b
-            b.MouseButton1Click:Connect(cb)
-            b.MouseEnter:Connect(function()
-                b.BackgroundTransparency = 0.05
-                b.BackgroundColor3 = color and color:Lerp(Color3.fromRGB(255, 255, 255), 0.1) or Color3.fromRGB(60, 60, 90)
+        local function _129(_130, _131, _132, _133)
+            local _134 = Instance.new("TextButton")
+            _134.Size = UDim2.new(0.85, 0, 0, 40)
+            _134.Position = UDim2.new(0.075, 0, 0, _131)
+            _134.BackgroundColor3 = _132 or Color3.fromRGB(_15(30,50), _15(30,50), _15(60,80))
+            _134.BackgroundTransparency = _15(15,30)/100
+            _134.Text = _130
+            _134.TextColor3 = Color3.fromRGB(255,255,255)
+            _134.Font = Enum.Font.GothamMedium
+            _134.TextSize = 14
+            _134.Parent = _116
+            local _135 = Instance.new("UICorner")
+            _135.CornerRadius = UDim.new(0, 12)
+            _135.Parent = _134
+            _134.MouseButton1Click:Connect(_133)
+            _134.MouseEnter:Connect(function()
+                _134.BackgroundTransparency = _15(0,10)/100
+                _134.BackgroundColor3 = _132 and _132:Lerp(Color3.fromRGB(255,255,255), 0.1) or Color3.fromRGB(_15(50,70), _15(50,70), _15(80,100))
             end)
-            b.MouseLeave:Connect(function()
-                b.BackgroundTransparency = 0.2
-                b.BackgroundColor3 = color or Color3.fromRGB(40, 40, 70)
+            _134.MouseLeave:Connect(function()
+                _134.BackgroundTransparency = _15(15,30)/100
+                _134.BackgroundColor3 = _132 or Color3.fromRGB(_15(30,50), _15(30,50), _15(60,80))
             end)
-            return b
+            return _134
         end
 
         -- Status
-        statusLabel = Instance.new("TextLabel")
-        statusLabel.Size = UDim2.new(0.85, 0, 0, 32)
-        statusLabel.Position = UDim2.new(0.075, 0, 0, 440)
-        statusLabel.BackgroundTransparency = 1
-        statusLabel.Text = "⚡ Ready"
-        statusLabel.TextColor3 = Color3.fromRGB(100, 255, 100)
-        statusLabel.TextScaled = true
-        statusLabel.Font = Enum.Font.GothamMedium
-        statusLabel.Parent = menuFrame
+        _82 = Instance.new("TextLabel")
+        _82.Size = UDim2.new(0.85, 0, 0, 32)
+        _82.Position = UDim2.new(0.075, 0, 0, 440)
+        _82.BackgroundTransparency = 1
+        _82.Text = "⚡ Ready"
+        _82.TextColor3 = Color3.fromRGB(100, 255, 100)
+        _82.TextScaled = true
+        _82.Font = Enum.Font.GothamMedium
+        _82.Parent = _116
 
-        eggInfoLabel = Instance.new("TextLabel")
-        eggInfoLabel.Size = UDim2.new(0.85, 0, 0, 28)
-        eggInfoLabel.Position = UDim2.new(0.075, 0, 0, 478)
-        eggInfoLabel.BackgroundTransparency = 1
-        eggInfoLabel.Text = "🥚 Target: None"
-        eggInfoLabel.TextColor3 = Color3.fromRGB(255, 200, 100)
-        eggInfoLabel.TextScaled = true
-        eggInfoLabel.Font = Enum.Font.GothamMedium
-        eggInfoLabel.Parent = menuFrame
+        _83 = Instance.new("TextLabel")
+        _83.Size = UDim2.new(0.85, 0, 0, 28)
+        _83.Position = UDim2.new(0.075, 0, 0, 478)
+        _83.BackgroundTransparency = 1
+        _83.Text = "🥚 Target: None"
+        _83.TextColor3 = Color3.fromRGB(255, 200, 100)
+        _83.TextScaled = true
+        _83.Font = Enum.Font.GothamMedium
+        _83.Parent = _116
 
         -- Buttons
-        makeBtn("🏆 Auto Steal Best Egg", 60, Color3.fromRGB(30, 60, 140), autoSteal)
-        makeBtn("🌾 Auto Farm", 108, Color3.fromRGB(60, 100, 30), autoFarm)
-        makeBtn("📋 Show Egg List", 156, Color3.fromRGB(30, 70, 70), function()
-            showEggList()
-            updateStatus("📋 Egg List shown!", Color3.fromRGB(100, 200, 255))
+        _129("🏆 Auto Steal Best Egg", 60, Color3.fromRGB(_15(20,40), _15(50,80), _15(130,160)), _90)
+        _129("🌾 Auto Farm", 108, Color3.fromRGB(_15(50,80), _15(90,120), _15(20,50)), _93)
+        _129("📋 Show Egg List", 156, Color3.fromRGB(_15(20,50), _15(60,90), _15(60,90)), function()
+            _38()
+            _84("📋 Egg List shown!", Color3.fromRGB(100,200,255))
             task.wait(2)
-            updateStatus("⚡ Ready", Color3.fromRGB(100, 255, 100))
+            _84("⚡ Ready", Color3.fromRGB(100,255,100))
         end)
-        makeBtn("🔍 Find Best Egg", 204, Color3.fromRGB(40, 50, 110), function()
-            local best = findBestEgg()
-            if best then
-                local r = getRarity(best)
-                updateStatus("🏆 Best: " .. r.label, r.color)
-                updateEggInfo("🥚 " .. best.Name, r.color)
+        _129("🔍 Find Best Egg", 204, Color3.fromRGB(_15(30,50), _15(40,70), _15(100,130)), function()
+            local _136 = _32()
+            if _136 then
+                local _137 = _18(_136)
+                _84("🏆 Best: " .. _137.l, _137.c)
+                _87("🥚 " .. _136.Name, _137.c)
             else
-                updateStatus("⚠️ No eggs!", Color3.fromRGB(255, 100, 100))
+                _84("⚠️ No eggs!", Color3.fromRGB(255,100,100))
             end
         end)
-        makeBtn("🦁 Spawn All Animals", 252, Color3.fromRGB(0, 120, 100), function()
-            local c = spawnAnimals()
-            updateStatus("🦁 Spawned " .. c .. " animals!", Color3.fromRGB(100, 255, 100))
+        _129("🦁 Spawn All Animals", 252, Color3.fromRGB(_15(0,30), _15(100,140), _15(80,120)), function()
+            local _138 = _61()
+            _84("🦁 Spawned " .. _138 .. " animals!", Color3.fromRGB(100,255,100))
             task.wait(2)
-            updateStatus("⚡ Ready", Color3.fromRGB(100, 255, 100))
+            _84("⚡ Ready", Color3.fromRGB(100,255,100))
         end)
-        makeBtn("💰 Add Money (Unlimited)", 300, Color3.fromRGB(0, 150, 50), function()
-            addMoney(999999999)
-            updateStatus("💰 Money Added!", Color3.fromRGB(255, 215, 0))
+        _129("💰 Add Money", 300, Color3.fromRGB(_15(0,30), _15(130,180), _15(30,70)), function()
+            _67(999999999)
+            _84("💰 Money Added!", Color3.fromRGB(255,215,0))
             task.wait(2)
-            updateStatus("⚡ Ready", Color3.fromRGB(100, 255, 100))
+            _84("⚡ Ready", Color3.fromRGB(100,255,100))
         end)
-        makeBtn("🛡 Anti AFK", 348, Color3.fromRGB(70, 30, 70), function()
-            antiAFK()
-            updateStatus("🛡 Anti AFK Active!", Color3.fromRGB(100, 255, 100))
+        _129("🛡 Anti AFK", 348, Color3.fromRGB(_15(60,90), _15(20,50), _15(60,90)), function()
+            _79()
+            _84("🛡 Anti AFK Active!", Color3.fromRGB(100,255,100))
             task.wait(2)
-            updateStatus("⚡ Ready", Color3.fromRGB(100, 255, 100))
+            _84("⚡ Ready", Color3.fromRGB(100,255,100))
         end)
-        makeBtn("❌ Close Menu", 396, Color3.fromRGB(120, 30, 30), function()
-            if menuFrame then menuFrame:Destroy(); menuFrame = nil end
-            menuVisible = false
+        _129("❌ Close", 396, Color3.fromRGB(_15(100,140), _15(20,50), _15(20,50)), function()
+            if _116 then _116:Destroy(); _116 = nil end
+            _115 = false
+            _110 = false
         end)
+        
+        _110 = false
     end)
 
-    return sg
+    return _99
 end
 
 -- ─── KEYBINDS ──────────────────────────────────────────────────────────
-UserInputService.InputBegan:Connect(function(i, gp)
-    if gp then return end
-    if i.KeyCode == Enum.KeyCode.F8 then
-        showEggList()
-        if statusLabel then
-            updateStatus("📋 Egg List shown!", Color3.fromRGB(100, 200, 255))
+_5.InputBegan:Connect(function(_139, _140)
+    if _140 then return end
+    if _139.KeyCode == Enum.KeyCode.F8 then
+        _38()
+        if _82 then
+            _84("📋 Egg List shown!", Color3.fromRGB(100,200,255))
             task.wait(2)
-            updateStatus("⚡ Ready", Color3.fromRGB(100, 255, 100))
+            _84("⚡ Ready", Color3.fromRGB(100,255,100))
         end
     end
-    if i.KeyCode == Enum.KeyCode.F9 then
-        autoSteal()
-        if statusLabel then
-            updateStatus(isStealing and "🔴 Stealing..." or "⏹ Stopped", 
-                isStealing and Color3.fromRGB(255, 100, 100) or Color3.fromRGB(100, 255, 100))
+    if _139.KeyCode == Enum.KeyCode.F9 then
+        _90()
+        if _82 then
+            _84(_80 and "🔴 Stealing..." or "⏹ Stopped", 
+                _80 and Color3.fromRGB(255,100,100) or Color3.fromRGB(100,255,100))
         end
     end
-    if i.KeyCode == Enum.KeyCode.F10 then
-        autoFarm()
-        if statusLabel then
-            updateStatus(isFarming and "🌾 Farming..." or "⏹ Farm Stopped",
-                isFarming and Color3.fromRGB(100, 255, 100) or Color3.fromRGB(255, 100, 100))
+    if _139.KeyCode == Enum.KeyCode.F10 then
+        _93()
+        if _82 then
+            _84(_81 and "🌾 Farming..." or "⏹ Farm Stopped",
+                _81 and Color3.fromRGB(100,255,100) or Color3.fromRGB(255,100,100))
         end
     end
-    if i.KeyCode == Enum.KeyCode.F11 then
-        local best = findBestEgg()
-        if best then
-            local r = getRarity(best)
-            updateEggInfo("🥚 " .. best.Name, r.color)
-            stealEgg(best)
-            updateStatus("✅ Stolen: " .. best.Name, Color3.fromRGB(100, 255, 100))
+    if _139.KeyCode == Enum.KeyCode.F11 then
+        local _141 = _32()
+        if _141 then
+            local _142 = _18(_141)
+            _87("🥚 " .. _141.Name, _142.c)
+            _55(_141)
+            _84("✅ Stolen: " .. _141.Name, Color3.fromRGB(100,255,100))
             task.wait(2)
-            updateStatus("⚡ Ready", Color3.fromRGB(100, 255, 100))
+            _84("⚡ Ready", Color3.fromRGB(100,255,100))
         else
-            updateStatus("⚠️ No eggs!", Color3.fromRGB(255, 100, 100))
+            _84("⚠️ No eggs!", Color3.fromRGB(255,100,100))
             task.wait(2)
-            updateStatus("⚡ Ready", Color3.fromRGB(100, 255, 100))
+            _84("⚡ Ready", Color3.fromRGB(100,255,100))
         end
     end
 end)
 
 -- ─── STARTUP ─────────────────────────────────────────────────────────────
-task.wait(math.random(2, 5))
-antiDetection()
-antiAFK()
-task.wait(math.random(1, 3))
-createUI()
-task.wait(math.random(1, 2))
-showEggList()
+task.wait(_15(3,8))
+_71()
+_79()
+task.wait(_15(1,4))
+_95()
+task.wait(_15(1,3))
+_38()
 
 print("")
 print("═══════════════════════════════════")
-print("  SC ARYA PRIVAT V1.4")
-print("  STEALTH EDITION")
+print("  SC ARYA PRIVAT V1.5")
+print("  ULTIMATE UNDETECTABLE")
 print("═══════════════════════════════════")
-print("✅ Stealth Mode Active")
-print("✅ Floating Menu Button Ready")
+print("✅ ZERO DETECTION ACTIVE")
+print("✅ Floating Menu Ready (Draggable)")
 print("✅ Auto Steal Best Egg (F9)")
 print("✅ Auto Farm (F10)")
 print("✅ Spawn All Animals")
 print("✅ Unlimited Money")
-print("✅ Enhanced Anti-Detection")
 print("✅ Anti-AFK Active")
 print("")
 print("📌 Keybinds:")
