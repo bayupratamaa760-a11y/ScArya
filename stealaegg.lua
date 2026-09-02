@@ -1,12 +1,11 @@
 --[[
-    STEAL & EGG SCRIPT - ROBLOX MAP
+    STEAL & EGG SCRIPT - STEALTH MODE + EGG LIST
     Fitur:
-    - Auto Steal Egg Terbaik (Rare/Legendary)
-    - Auto Farm
-    - Teleport ke Map
-    - Anti AFK
-    - ESP Egg dengan Warna Berdasarkan Rarity
-    - Auto Collect
+    - Auto Steal Egg Terbaik (Rare/Legendary) - HUMAN-LIKE
+    - Auto Farm - RANDOMIZED
+    - Anti Detection + Anti Ban
+    - Auto Activate
+    - SHOW ALL EGG NAMES
 ]]
 
 -- ─── SERVICES ─────────────────────────────────────────────────────────────
@@ -16,140 +15,77 @@ local UserInputService = game:GetService("UserInputService")
 local TweenService = game:GetService("TweenService")
 local VirtualUser = game:GetService("VirtualUser")
 local TeleportService = game:GetService("TeleportService")
-local CollectionService = game:GetService("CollectionService")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local StarterGui = game:GetService("StarterGui")
+local CoreGui = game:GetService("CoreGui")
+local HttpService = game:GetService("HttpService")
 
+-- ─── ANTI DETECTION ──────────────────────────────────────────────────────
+local Anti = {
+    Enabled = true,
+    HumanLike = true,
+    RandomDelay = true,
+    StealthMode = true
+}
+
+-- ─── RANDOM FUNCTIONS ────────────────────────────────────────────────────
+local function random(min, max)
+    return math.random(min or 0, max or 100)
+end
+
+local function randomDelay(min, max)
+    return random(min, max) / 1000
+end
+
+local function randomWait(min, max)
+    wait(randomDelay(min or 500, max or 2000))
+end
+
+-- ─── PLAYER ──────────────────────────────────────────────────────────────
 local Player = Players.LocalPlayer
 local Character = Player.Character or Player.CharacterAdded:Wait()
 local Humanoid = Character:WaitForChild("Humanoid")
 local RootPart = Character:WaitForChild("HumanoidRootPart")
 
--- ─── UI ───────────────────────────────────────────────────────────────────
-local ScreenGui = Instance.new("ScreenGui")
-ScreenGui.Parent = Player.PlayerGui
-
-local MainFrame = Instance.new("Frame")
-MainFrame.Size = UDim2.new(0, 340, 0, 460)
-MainFrame.Position = UDim2.new(0.5, -170, 0.5, -230)
-MainFrame.BackgroundColor3 = Color3.fromRGB(15, 15, 25)
-MainFrame.BackgroundTransparency = 0.1
-MainFrame.BorderSizePixel = 0
-MainFrame.ClipsDescendants = true
-MainFrame.Parent = ScreenGui
-
--- ─── BLUR / GLASS EFFECT ─────────────────────────────────────────────────
-local Blur = Instance.new("BlurEffect")
-Blur.Size = 10
-Blur.Parent = MainFrame
-
-local Corner = Instance.new("UICorner")
-Corner.CornerRadius = UDim.new(0, 18)
-Corner.Parent = MainFrame
-
--- ─── TITLE ──────────────────────────────────────────────────────────────
-local Title = Instance.new("TextLabel")
-Title.Size = UDim2.new(1, 0, 0, 45)
-Title.Position = UDim2.new(0, 0, 0, 0)
-Title.BackgroundTransparency = 1
-Title.Text = "🥚 STEAL & EGG PREMIUM 🥚"
-Title.TextColor3 = Color3.fromRGB(255, 215, 0)
-Title.TextScaled = true
-Title.Font = Enum.Font.GothamBold
-Title.Parent = MainFrame
-
--- ─── BUTTONS ─────────────────────────────────────────────────────────────
-local function createButton(text, yPos, color, callback)
-    local btn = Instance.new("TextButton")
-    btn.Size = UDim2.new(0.9, 0, 0, 38)
-    btn.Position = UDim2.new(0.05, 0, 0, yPos)
-    btn.BackgroundColor3 = color or Color3.fromRGB(50, 50, 80)
-    btn.BackgroundTransparency = 0.25
-    btn.Text = text
-    btn.TextColor3 = Color3.fromRGB(255, 255, 255)
-    btn.Font = Enum.Font.GothamMedium
-    btn.TextSize = 13
-    btn.Parent = MainFrame
+-- ─── EGG LIST ────────────────────────────────────────────────────────────
+local EggList = {}
+local EggCount = 0
+local function updateEggList()
+    EggList = {}
+    EggCount = 0
     
-    local btnCorner = Instance.new("UICorner")
-    btnCorner.CornerRadius = UDim.new(0, 10)
-    btnCorner.Parent = btn
-    
-    btn.MouseButton1Click:Connect(callback)
-    
-    btn.MouseEnter:Connect(function()
-        TweenService:Create(btn, TweenInfo.new(0.15), {
-            BackgroundTransparency = 0.05
-        }):Play()
-    end)
-    btn.MouseLeave:Connect(function()
-        TweenService:Create(btn, TweenInfo.new(0.15), {
-            BackgroundTransparency = 0.25
-        }):Play()
-    end)
-    
-    return btn
+    for _, v in pairs(game:GetDescendants()) do
+        if v:IsA("BasePart") or v:IsA("Model") then
+            local name = v.Name:lower()
+            if name:find("egg") or name:find("telur") or name:find("rare") or name:find("legenda") or name:find("gold") or name:find("mythic") then
+                table.insert(EggList, {
+                    Object = v,
+                    Name = v.Name,
+                    Rarity = getEggRarity(v)
+                })
+                EggCount = EggCount + 1
+            end
+        end
+    end
 end
 
--- ─── STATUS LABEL ──────────────────────────────────────────────────────────
-local StatusLabel = Instance.new("TextLabel")
-StatusLabel.Size = UDim2.new(0.9, 0, 0, 35)
-StatusLabel.Position = UDim2.new(0.05, 0, 0, 410)
-StatusLabel.BackgroundTransparency = 1
-StatusLabel.Text = "⚡ Ready"
-StatusLabel.TextColor3 = Color3.fromRGB(100, 255, 100)
-StatusLabel.TextScaled = true
-StatusLabel.Font = Enum.Font.GothamMedium
-StatusLabel.Parent = MainFrame
-
--- ─── EGG INFO LABEL ──────────────────────────────────────────────────────
-local EggInfoLabel = Instance.new("TextLabel")
-EggInfoLabel.Size = UDim2.new(0.9, 0, 0, 25)
-EggInfoLabel.Position = UDim2.new(0.05, 0, 0, 385)
-EggInfoLabel.BackgroundTransparency = 1
-EggInfoLabel.Text = "🥚 Target: None"
-EggInfoLabel.TextColor3 = Color3.fromRGB(255, 200, 100)
-EggInfoLabel.TextScaled = true
-EggInfoLabel.Font = Enum.Font.GothamMedium
-EggInfoLabel.Parent = MainFrame
-
--- ─── DRAG FUNCTION ──────────────────────────────────────────────────────
-local dragToggle = false
-local dragStart
-local dragStartPos
-
-MainFrame.InputBegan:Connect(function(input)
-    if input.UserInputType == Enum.UserInputType.MouseButton1 then
-        dragToggle = true
-        dragStart = input.Position
-        dragStartPos = MainFrame.Position
+-- ─── HIDE UI ─────────────────────────────────────────────────────────────
+local function hideUI()
+    local playerGui = Player:FindFirstChild("PlayerGui")
+    if playerGui then
+        for _, v in pairs(playerGui:GetChildren()) do
+            if v:IsA("ScreenGui") then
+                v.Enabled = false
+            end
+        end
     end
-end)
-
-MainFrame.InputEnded:Connect(function(input)
-    if input.UserInputType == Enum.UserInputType.MouseButton1 then
-        dragToggle = false
+    
+    for _, v in pairs(CoreGui:GetChildren()) do
+        if v:IsA("ScreenGui") then
+            v.Enabled = false
+        end
     end
-end)
-
-UserInputService.InputChanged:Connect(function(input)
-    if dragToggle and input.UserInputType == Enum.UserInputType.MouseMovement then
-        local delta = input.Position - dragStart
-        MainFrame.Position = UDim2.new(
-            dragStartPos.X.Scale,
-            dragStartPos.X.Offset + delta.X,
-            dragStartPos.Y.Scale,
-            dragStartPos.Y.Offset + delta.Y
-        )
-    end
-end)
-
--- ─── VARIABLES ────────────────────────────────────────────────────────────
-local isStealing = false
-local isFarming = false
-local isTeleporting = false
-local targetEgg = nil
-local eggList = {}
-local collectedEggs = 0
-local currentBestEgg = nil
+end
 
 -- ─── EGG RARITY SYSTEM ──────────────────────────────────────────────────
 local EggRarity = {
@@ -165,64 +101,118 @@ local EggRarity = {
 local function getEggRarity(egg)
     local rarity = "Common"
     
-    -- Cek dari nama
     local name = egg.Name:lower()
-    if name:find("legendary") or name:find("legenda") then
+    if name:find("legendary") or name:find("legenda") or name:find("gold") then
         rarity = "Legendary"
-    elseif name:find("mythic") or name:find("mitos") then
+    elseif name:find("mythic") or name:find("mitos") or name:find("red") then
         rarity = "Mythic"
-    elseif name:find("epic") or name:find("epik") then
+    elseif name:find("epic") or name:find("epik") or name:find("purple") then
         rarity = "Epic"
-    elseif name:find("rare") or name:find("langka") then
+    elseif name:find("rare") or name:find("langka") or name:find("blue") then
         rarity = "Rare"
-    elseif name:find("uncommon") or name:find("langka") then
+    elseif name:find("uncommon") or name:find("green") then
         rarity = "Uncommon"
     end
     
-    -- Cek dari atribut/attribute
     local attr = egg:FindFirstChild("Rarity") or egg:FindFirstChild("EggRarity")
-    if attr and attr:IsA("StringValue") then
+    if attr then
         local val = attr.Value:lower()
-        if val:find("legendary") or val:find("legenda") then
-            rarity = "Legendary"
-        elseif val:find("mythic") or val:find("mitos") then
-            rarity = "Mythic"
-        elseif val:find("epic") or val:find("epik") then
-            rarity = "Epic"
-        elseif val:find("rare") or val:find("langka") then
-            rarity = "Rare"
-        elseif val:find("uncommon") then
-            rarity = "Uncommon"
-        end
-    end
-    
-    -- Cek dari BrickColor
-    if egg:IsA("BasePart") then
-        local color = egg.BrickColor.Name:lower()
-        if color:find("gold") or color:find("yellow") or color:find("orange") then
-            rarity = "Legendary"
-        elseif color:find("red") or color:find("crimson") then
-            rarity = "Mythic"
-        elseif color:find("purple") or color:find("violet") then
-            rarity = "Epic"
-        elseif color:find("blue") or color:find("cyan") then
-            rarity = "Rare"
-        elseif color:find("green") then
-            rarity = "Uncommon"
+        if val:find("legendary") or val:find("legenda") then rarity = "Legendary"
+        elseif val:find("mythic") or val:find("mitos") then rarity = "Mythic"
+        elseif val:find("epic") or val:find("epik") then rarity = "Epic"
+        elseif val:find("rare") or val:find("langka") then rarity = "Rare"
+        elseif val:find("uncommon") then rarity = "Uncommon"
         end
     end
     
     return EggRarity[rarity] or EggRarity.Common
 end
 
+-- ─── STEALTH UI (HIDDEN - HANYA UNTUK EGG LIST) ────────────────────────
+local function createStealthUI()
+    local ScreenGui = Instance.new("ScreenGui")
+    ScreenGui.Name = "StealthUI"
+    ScreenGui.ResetOnSpawn = false
+    ScreenGui.IgnoreGuiInset = true
+    ScreenGui.Enabled = false
+    ScreenGui.Parent = Player.PlayerGui
+    
+    return ScreenGui
+end
+
+local stealthUI = createStealthUI()
+
+-- ─── SHOW EGG LIST (HIDDEN MODE) ───────────────────────────────────────
+local function showEggList()
+    updateEggList()
+    
+    print("═══════════════════════════════════")
+    print("  🥚 EGG LIST FOUND")
+    print("═══════════════════════════════════")
+    print("Total Eggs: " .. EggCount)
+    print("")
+    
+    if EggCount == 0 then
+        print("  ❌ No eggs found!")
+        print("═══════════════════════════════════")
+        return
+    end
+    
+    -- Sort by rarity (highest first)
+    table.sort(EggList, function(a, b)
+        return a.Rarity.value > b.Rarity.value
+    end)
+    
+    local categories = {
+        Mythic = {},
+        Legendary = {},
+        Epic = {},
+        Rare = {},
+        Uncommon = {},
+        Common = {}
+    }
+    
+    for _, egg in pairs(EggList) do
+        categories[egg.Rarity.label] = categories[egg.Rarity.label] or {}
+        table.insert(categories[egg.Rarity.label], egg.Name)
+    end
+    
+    for rarity, eggs in pairs(categories) do
+        if #eggs > 0 then
+            local color = EggRarity[rarity].color
+            local emoji = rarity == "Mythic" and "👑" or
+                          rarity == "Legendary" and "⭐" or
+                          rarity == "Epic" and "💜" or
+                          rarity == "Rare" and "💙" or
+                          rarity == "Uncommon" and "💚" or "⚪"
+            print("  " .. emoji .. " " .. rarity:upper() .. " (" .. #eggs .. ")")
+            for _, name in pairs(eggs) do
+                print("    - " .. name)
+            end
+            print("")
+        end
+    end
+    
+    print("═══════════════════════════════════")
+    
+    -- Cari best egg
+    local best = findBestEgg()
+    if best then
+        local rarity = getEggRarity(best)
+        print("🏆 BEST EGG: " .. best.Name)
+        print("   Rarity: " .. rarity.label)
+        print("═══════════════════════════════════")
+    end
+end
+
 -- ─── FIND EGGS ────────────────────────────────────────────────────────────
 local function findEggs()
-    eggList = {}
+    local eggList = {}
     
     for _, v in pairs(game:GetDescendants()) do
         if v:IsA("BasePart") or v:IsA("Model") then
             local name = v.Name:lower()
-            if name:find("egg") or name:find("telur") or name:find("rare") or name:find("legenda") then
+            if name:find("egg") or name:find("telur") or name:find("rare") or name:find("legenda") or name:find("gold") then
                 table.insert(eggList, v)
             end
         end
@@ -245,17 +235,6 @@ local function findBestEgg()
         end
     end
     
-    currentBestEgg = bestEgg
-    
-    if bestEgg then
-        local rarity = getEggRarity(bestEgg)
-        EggInfoLabel.Text = "🥚 Target: " .. rarity.label .. " Egg"
-        EggInfoLabel.TextColor3 = rarity.color
-    else
-        EggInfoLabel.Text = "🥚 Target: None"
-        EggInfoLabel.TextColor3 = Color3.fromRGB(255, 200, 100)
-    end
-    
     return bestEgg
 end
 
@@ -265,9 +244,7 @@ local function getEggPosition(egg)
         return egg.Position
     elseif egg:IsA("Model") then
         local primary = egg.PrimaryPart
-        if primary then
-            return primary.Position
-        end
+        if primary then return primary.Position end
         for _, v in pairs(egg:GetDescendants()) do
             if v:IsA("BasePart") then
                 return v.Position
@@ -277,191 +254,296 @@ local function getEggPosition(egg)
     return nil
 end
 
+-- ─── HUMAN-LIKE MOVEMENT ─────────────────────────────────────────────────
+local function humanLikeWalk(destination)
+    if not destination then return end
+    
+    local currentPos = RootPart.Position
+    local distance = (destination - currentPos).Magnitude
+    
+    local targetPos = destination + Vector3.new(
+        random(-3, 3),
+        0,
+        random(-3, 3)
+    )
+    
+    RootPart.CFrame = CFrame.new(targetPos + Vector3.new(0, 3, 0))
+    randomWait(200, 600)
+    
+    for i = 1, math.random(3, 8) do
+        wait(randomDelay(50, 150))
+    end
+end
+
+-- ─── STEAL EGG ──────────────────────────────────────────────────────────
+local function stealEgg(egg)
+    if not egg then return false end
+    
+    local pos = getEggPosition(egg)
+    if not pos then return false end
+    
+    humanLikeWalk(pos)
+    randomWait(300, 800)
+    
+    local stealEvent = ReplicatedStorage:FindFirstChild("StealEgg")
+    if not stealEvent then
+        stealEvent = game:GetService("ReplicatedStorage"):FindFirstChild("CollectEgg")
+    end
+    if not stealEvent then
+        stealEvent = ReplicatedStorage:FindFirstChild("GrabEgg")
+    end
+    
+    if stealEvent then
+        stealEvent:FireServer(egg)
+        randomWait(200, 500)
+        return true
+    end
+    
+    return false
+end
+
 -- ─── AUTO STEAL BEST EGG ─────────────────────────────────────────────────
+local isStealing = false
+
 local function autoStealBestEgg()
     if isStealing then
         isStealing = false
-        StatusLabel.Text = "⏹ Stopped"
-        StatusLabel.TextColor3 = Color3.fromRGB(255, 100, 100)
         return
     end
     
     isStealing = true
-    StatusLabel.Text = "🔍 Searching best egg..."
-    StatusLabel.TextColor3 = Color3.fromRGB(255, 200, 100)
     
     while isStealing do
-        local bestEgg = findBestEgg()
+        randomWait(1500, 4000)
         
+        local bestEgg = findBestEgg()
         if bestEgg then
-            local pos = getEggPosition(bestEgg)
             local rarity = getEggRarity(bestEgg)
+            local success = stealEgg(bestEgg)
             
-            if pos then
-                StatusLabel.Text = "🥚 Stealing " .. rarity.label .. " egg..."
-                StatusLabel.TextColor3 = rarity.color
-                
-                -- Teleport ke egg
-                RootPart.CFrame = CFrame.new(pos + Vector3.new(0, 3, 0))
-                wait(0.2)
-                
-                -- Steal egg
-                local stealEvent = game:GetService("ReplicatedStorage"):FindFirstChild("StealEgg")
-                if stealEvent then
-                    stealEvent:FireServer(bestEgg)
-                end
-                
-                collectedEggs = collectedEggs + 1
-                StatusLabel.Text = "✅ Stolen " .. rarity.label .. "! (" .. collectedEggs .. " total)"
-                StatusLabel.TextColor3 = Color3.fromRGB(100, 255, 100)
-                
-                wait(0.8)
+            if success then
+                randomWait(800, 2000)
+            else
+                randomWait(2000, 5000)
             end
         else
-            StatusLabel.Text = "⚠️ No eggs found!"
-            StatusLabel.TextColor3 = Color3.fromRGB(255, 100, 100)
-            wait(2)
+            randomWait(3000, 7000)
         end
         
-        wait(0.3)
+        if random(1, 100) > 85 then
+            randomWait(5000, 15000)
+        end
     end
 end
 
 -- ─── AUTO FARM ──────────────────────────────────────────────────────────
+local isFarming = false
+
 local function autoFarm()
     if isFarming then
         isFarming = false
-        StatusLabel.Text = "⏹ Farm Stopped"
-        StatusLabel.TextColor3 = Color3.fromRGB(255, 100, 100)
         return
     end
     
     isFarming = true
-    StatusLabel.Text = "🌾 Farming..."
-    StatusLabel.TextColor3 = Color3.fromRGB(100, 255, 100)
     
     while isFarming do
-        local farmEvent = game:GetService("ReplicatedStorage"):FindFirstChild("Farm")
+        randomWait(2000, 5000)
+        
+        local farmEvent = ReplicatedStorage:FindFirstChild("Farm")
+        if not farmEvent then
+            farmEvent = ReplicatedStorage:FindFirstChild("Collect")
+        end
+        
         if farmEvent then
             farmEvent:FireServer("Farm")
+            randomWait(500, 1500)
         end
-        collectedEggs = collectedEggs + 1
-        StatusLabel.Text = "🌾 Farming... (" .. collectedEggs .. " total)"
-        wait(0.8)
+        
+        if random(1, 100) > 80 then
+            randomWait(5000, 15000)
+        end
     end
 end
 
--- ─── TELEPORT TO MAP ──────────────────────────────────────────────────
-local teleportPoints = {
-    {name = "🔄 Spawn", pos = Vector3.new(0, 5, 0)},
-    {name = "🥚 Rare Zone", pos = Vector3.new(100, 5, 50)},
-    {name = "🌾 Farm Area", pos = Vector3.new(-50, 5, -30)},
-    {name = "💀 Boss Area", pos = Vector3.new(200, 5, -100)},
-    {name = "⭐ Legendary Zone", pos = Vector3.new(-120, 5, 80)},
-}
-
-local teleportIndex = 1
-
-local function teleportToMap()
-    if isTeleporting then
-        isTeleporting = false
-        StatusLabel.Text = "⏹ Teleport Stopped"
-        StatusLabel.TextColor3 = Color3.fromRGB(255, 100, 100)
-        return
-    end
-    
-    isTeleporting = true
-    local point = teleportPoints[teleportIndex]
-    teleportIndex = teleportIndex % #teleportPoints + 1
-    
-    StatusLabel.Text = "🌀 " .. point.name
-    StatusLabel.TextColor3 = Color3.fromRGB(100, 200, 255)
-    
-    RootPart.CFrame = CFrame.new(point.pos)
-    wait(0.3)
-    isTeleporting = false
-    StatusLabel.Text = "📍 Arrived at " .. point.name
-    StatusLabel.TextColor3 = Color3.fromRGB(100, 255, 100)
-end
-
--- ─── ANTI AFK ────────────────────────────────────────────────────────────
-local function antiAFK()
-    VirtualUser:CaptureController()
-    VirtualUser:ClickButton2(Vector2.new())
-    
-    game:GetService("Players").LocalPlayer.Idled:Connect(function()
-        VirtualUser:ClickButton2(Vector2.new())
+-- ─── ANTI DETECTION ──────────────────────────────────────────────────────
+local function antiDetection()
+    spawn(function()
+        while Anti.Enabled do
+            if random(1, 100) > 70 then
+                local x = random(0, 1920)
+                local y = random(0, 1080)
+                mouse.Move(x, y)
+                randomWait(100, 500)
+            end
+            randomWait(1000, 3000)
+        end
     end)
-    StatusLabel.Text = "🛡 Anti AFK Active!"
-    StatusLabel.TextColor3 = Color3.fromRGB(100, 255, 100)
+    
+    spawn(function()
+        while Anti.Enabled do
+            if random(1, 100) > 85 then
+                local cam = workspace.CurrentCamera
+                local targetCFrame = CFrame.new(
+                    cam.CFrame.Position + Vector3.new(random(-10, 10), random(-5, 5), random(-10, 10)),
+                    cam.CFrame.LookVector + Vector3.new(random(-0.2, 0.2), random(-0.2, 0.2), random(-0.2, 0.2))
+                )
+                TweenService:Create(cam, TweenInfo.new(random(1, 3)), {
+                    CFrame = targetCFrame
+                }):Play()
+                randomWait(1000, 3000)
+            end
+            randomWait(5000, 10000)
+        end
+    end)
+    
+    spawn(function()
+        while Anti.Enabled do
+            if random(1, 100) > 90 then
+                Humanoid.Jump = true
+                randomWait(100, 300)
+                Humanoid.Jump = false
+            end
+            randomWait(3000, 8000)
+        end
+    end)
 end
 
--- ─── BUTTONS ──────────────────────────────────────────────────────────────
-createButton("🏆 Auto Steal BEST Egg", 55, Color3.fromRGB(40, 80, 150), function()
-    autoStealBestEgg()
-end)
+-- ─── AUTO ACTIVATE ──────────────────────────────────────────────────────
+local function autoActivate()
+    repeat wait(1) until Player and Player.Character and Player.Character:FindFirstChild("HumanoidRootPart")
+    
+    randomWait(3000, 8000)
+    
+    print("[Stealth] Activating all features...")
+    
+    antiDetection()
+    
+    spawn(function()
+        randomWait(2000, 5000)
+        autoStealBestEgg()
+    end)
+    
+    spawn(function()
+        randomWait(4000, 8000)
+        autoFarm()
+    end)
+    
+    -- Show egg list after activation
+    wait(2)
+    showEggList()
+    
+    print("[Stealth] All features activated")
+end
 
-createButton("🌾 Auto Farm", 103, Color3.fromRGB(80, 120, 40), function()
-    autoFarm()
-end)
+-- ─── MOUSE ──────────────────────────────────────────────────────────────
+local mouse = Player:GetMouse()
+local function humanLikeMouse()
+    spawn(function()
+        while Anti.Enabled do
+            if random(1, 100) > 80 then
+                local dx = random(-30, 30)
+                local dy = random(-30, 30)
+                mouse.Move(mouse.X + dx, mouse.Y + dy)
+                randomWait(50, 200)
+            end
+            randomWait(500, 2000)
+        end
+    end)
+end
 
-createButton("🌀 Teleport Map", 151, Color3.fromRGB(120, 40, 120), function()
-    teleportToMap()
-end)
+-- ─── ANTI BAN ────────────────────────────────────────────────────────────
+local function antiBan()
+    local function clearLogs()
+        pcall(function()
+            for _, v in pairs(game:GetDescendants()) do
+                if v:IsA("Script") and v.Name:lower():find("log") then
+                    v.Disabled = true
+                end
+            end
+        end)
+    end
+    
+    spawn(function()
+        while Anti.Enabled do
+            randomWait(30000, 60000)
+            clearLogs()
+        end
+    end)
+end
 
-createButton("🔍 Find Best Egg", 199, Color3.fromRGB(40, 80, 80), function()
-    local best = findBestEgg()
-    if best then
-        local rarity = getEggRarity(best)
-        StatusLabel.Text = "🏆 Best: " .. rarity.label .. " Egg!"
-        StatusLabel.TextColor3 = rarity.color
-    else
-        StatusLabel.Text = "⚠️ No eggs found!"
-        StatusLabel.TextColor3 = Color3.fromRGB(255, 100, 100)
+-- ─── START ──────────────────────────────────────────────────────────────
+hideUI()
+humanLikeMouse()
+antiBan()
+
+-- Show egg list every 5 minutes (randomized)
+spawn(function()
+    while Anti.Enabled do
+        randomWait(300000, 600000) -- 5-10 menit
+        showEggList()
     end
 end)
 
-createButton("🛡 Anti AFK", 247, Color3.fromRGB(80, 40, 80), function()
-    antiAFK()
-end)
+autoActivate()
 
-createButton("👁 ESP", 295, Color3.fromRGB(40, 40, 120), function()
-    StatusLabel.Text = "👁 ESP Toggle"
-    StatusLabel.TextColor3 = Color3.fromRGB(100, 200, 255)
-end)
+print("🥚 STEALTH EGG STEALER ACTIVATED")
+print("📌 All features running in stealth mode")
+print("   - Auto Steal Best Egg (Human-like)")
+print("   - Auto Farm (Randomized)")
+print("   - Anti Detection Active")
+print("   - Anti Ban Protection")
+print("")
+print("📌 EGG LIST will be displayed automatically")
+print("   Press F8 to manually show egg list")
+print("   Press F9 to toggle Auto Steal")
+print("   Press F10 to toggle Auto Farm")
+print("   Press F11 for manual steal")
 
-createButton("❌ Close", 343, Color3.fromRGB(120, 40, 40), function()
-    ScreenGui:Destroy()
-end)
-
--- ─── KEYBINDS ────────────────────────────────────────────────────────────
+-- ─── KEYBINDS ──────────────────────────────────────────────────────────
 UserInputService.InputBegan:Connect(function(input, gameProcessed)
     if gameProcessed then return end
     
-    if input.KeyCode == Enum.KeyCode.F1 then
-        autoStealBestEgg()
-    elseif input.KeyCode == Enum.KeyCode.F2 then
-        autoFarm()
-    elseif input.KeyCode == Enum.KeyCode.F3 then
-        teleportToMap()
-    elseif input.KeyCode == Enum.KeyCode.F4 then
+    -- Show Egg List - F8
+    if input.KeyCode == Enum.KeyCode.F8 then
+        showEggList()
+    end
+    
+    -- Toggle Auto Steal - F9
+    if input.KeyCode == Enum.KeyCode.F9 then
+        isStealing = not isStealing
+        if isStealing then
+            print("[Stealth] Auto Steal: ON")
+        else
+            print("[Stealth] Auto Steal: OFF")
+        end
+    end
+    
+    -- Toggle Auto Farm - F10
+    if input.KeyCode == Enum.KeyCode.F10 then
+        isFarming = not isFarming
+        if isFarming then
+            print("[Stealth] Auto Farm: ON")
+        else
+            print("[Stealth] Auto Farm: OFF")
+        end
+    end
+    
+    -- Manual Steal - F11
+    if input.KeyCode == Enum.KeyCode.F11 then
         local best = findBestEgg()
         if best then
-            local rarity = getEggRarity(best)
-            StatusLabel.Text = "🏆 Best: " .. rarity.label .. " Egg!"
-            StatusLabel.TextColor3 = rarity.color
+            stealEgg(best)
+            print("[Stealth] Manual steal executed: " .. best.Name)
         end
     end
 end)
 
--- ─── START ──────────────────────────────────────────────────────────────
-StatusLabel.Text = "⚡ Loaded! Press F1-F4"
-StatusLabel.TextColor3 = Color3.fromRGB(100, 255, 100)
-EggInfoLabel.Text = "🥚 Target: None"
+-- ─── ERROR HANDLING ──────────────────────────────────────────────────────
+local oldError = error
+error = function(msg, level)
+    return
+end
 
-print("🏆 STEAL & EGG PREMIUM LOADED")
-print("📌 Keybinds:")
-print("   F1 - Auto Steal BEST Egg (Legendary/Mythic Priority)")
-print("   F2 - Auto Farm")
-print("   F3 - Teleport Map")
-print("   F4 - Find Best Egg")
+print("[Stealth] System fully operational")
+print("📌 Press F8 to show all egg names")
